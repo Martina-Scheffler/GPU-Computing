@@ -1,8 +1,8 @@
 #include <iostream>
 #include <cmath>
 
-#include "matrix_generation.h"
-#include "check_correctness.h"
+#include "../include/matrix_generation.h"
+#include "../include/check_correctness.h"
 
 using namespace std;
 

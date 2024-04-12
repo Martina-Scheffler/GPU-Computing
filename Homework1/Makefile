@@ -1,26 +1,31 @@
 CC = c++
 LIB_HOME=.
 LIBS=-L${LIB_HOME}/lib64
-INCLUDE = -Isrc
 OPT = -std=c++14
 
-BUILDDIR := obj
 TARGETDIR := bin
+SRCDIR := src
+INCDIR = include
 
-all: $(TARGETDIR)/simple_transpose $(TARGETDIR)/square_transpose $(TARGETDIR)/block_transpose
+INCLUDE_HEADERS := $(INCDIR)/*.h
+INCLUDE_CPP := $(INCDIR)/*.cpp
 
-$(TARGETDIR)/simple_transpose: simple_transpose.cpp $(OBJECTS)
+
+all: $(TARGETDIR)/simple_transpose $(TARGETDIR)/square_transpose $(TARGETDIR)/block_transpose 
+
+
+$(TARGETDIR)/simple_transpose: $(SRCDIR)/simple_transpose.cpp $(INCLUDE_HEADERS)
 	mkdir -p $(@D)
-	$(CC) $^ -o $@ $(INCLUDE) $(LIBS) $(OPT)
+	$(CC) $^ -o $@ $(LIBS) $(OPT) $(INCLUDE_CPP)
 
-$(TARGETDIR)/square_transpose: square_transpose.cpp $(OBJECTS)
+$(TARGETDIR)/square_transpose: $(SRCDIR)/square_transpose.cpp 
 	mkdir -p $(@D)
-	$(CC) $^ -o $@ $(INCLUDE) $(LIBS) $(OPT)
+	$(CC) $^ -o $@ $(LIBS) $(OPT)
 
-$(TARGETDIR)/block_transpose: block_transpose.cpp $(OBJECTS)
+$(TARGETDIR)/block_transpose: $(SRCDIR)/block_transpose.cpp
 	mkdir -p $(@D)
-	$(CC) $^ -o $@ $(INCLUDE) $(LIBS) $(OPT)
+	$(CC) $^ -o $@ $(LIBS) $(OPT)
 
 
 clean:
-	rm $(BUILDDIR)/*.o $(TARGETDIR)/*
+	$(TARGETDIR)/*

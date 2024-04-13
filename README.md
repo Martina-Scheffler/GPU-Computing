@@ -1,36 +1,36 @@
 # GPU Computing
 ## Cluster
 ### Access
-```
-$ ssh name.surname@marzola.disi.unitn.it
+```bash
+ssh name.surname@marzola.disi.unitn.it
 ```
 Example:
-```
-$ ssh martina.scheffler@marzola.disi.unitn.it
+```bash
+ssh martina.scheffler@marzola.disi.unitn.it
 ```
 
 ### Copying
-```
-$ scp path_to_local_file name.surname@marzola.disi.unitn.it:destination_path
+```bash
+scp path_to_local_file name.surname@marzola.disi.unitn.it:destination_path
 ```
 Example:
-```
-$ scp Homework1/* martina.scheffler@marzola.disi.unitn.it:~/Homework1
+```bash
+scp Homework1/* martina.scheffler@marzola.disi.unitn.it:~/Homework1
 ```
 
 ## C++
 ### Makefile
-```
-$ make
+```bash
+make
 ```
 
 ### No Makefile
-```
-$ g++ -o simple_transpose simple_transpose.cpp
+```bash
+g++ -o simple_transpose simple_transpose.cpp
 ```
 
 ## Sbatch
 ### Run File
-```
-$ sbatch matrix_transpose_sbatch.sh
+```bash
+sbatch matrix_transpose_sbatch.sh
 ```

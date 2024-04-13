@@ -8,4 +8,4 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
 
-./compile_flag_analysis
+./compile_flag_analysis.sh

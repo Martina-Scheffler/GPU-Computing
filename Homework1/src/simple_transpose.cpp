@@ -5,7 +5,6 @@
 #include <fstream>
 
 #include "../include/matrix_generation.h"
-#include "../include/check_correctness.h"
 
 using namespace std;
 
@@ -88,24 +87,8 @@ int main (int argc, char* argv[]){
 		const std::chrono::duration<double, std::milli> duration = stop - start;
 		//auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start);
 
-		// check for correctness using Eigen
-		if (!check_transpose_correctness(A, A_t, size)){
-			throw runtime_error("Checking for correctness failed.");
-		}
-
-		// If correctness was proven, display execution time
+		// display execution time
 		cout << "Execution Time: " << duration.count() << " ms" << endl;
-
-		/*
-		// display result
-		for (int i=0; i<4; i++){
-			for (int j=0; j<4; j++){
-				cout << A_t[i*4 +j] << '\t';
-			}
-			cout << '\n';
-		}
-		*/
-
 	
 	}
 

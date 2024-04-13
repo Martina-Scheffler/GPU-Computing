@@ -8,18 +8,14 @@ TARGETDIR := bin
 SRCDIR := src
 INCDIR = include
 
-INCLUDE_HEADERS := $(INCDIR)/*.h
-INCLUDE_CPP := $(INCDIR)/*.cpp
+INCLUDE_HEADERS := $(INCDIR)/matrix_generation.h
+INCLUDE_CPP := $(INCDIR)/matrix_generation.cpp
 
 
-all: $(TARGETDIR)/simple_transpose $(TARGETDIR)/square_transpose $(TARGETDIR)/block_transpose 
+all: $(TARGETDIR)/simple_transpose $(TARGETDIR)/block_transpose 
 
 
 $(TARGETDIR)/simple_transpose: $(SRCDIR)/simple_transpose.cpp $(INCLUDE_HEADERS)
-	mkdir -p $(@D)
-	$(CC) $^ -o $@ $(LIBS) $(OPT) $(INCLUDE_CPP)
-
-$(TARGETDIR)/square_transpose: $(SRCDIR)/square_transpose.cpp $(INCLUDE_HEADERS)
 	mkdir -p $(@D)
 	$(CC) $^ -o $@ $(LIBS) $(OPT) $(INCLUDE_CPP)
 

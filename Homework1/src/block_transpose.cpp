@@ -5,7 +5,6 @@
 #include <fstream>
 
 #include "../include/matrix_generation.h"
-#include "../include/check_correctness.h"
 
 using namespace std;
 

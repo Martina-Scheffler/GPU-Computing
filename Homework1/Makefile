@@ -1,7 +1,8 @@
 CC = c++
 LIB_HOME=.
 LIBS=-L${LIB_HOME}/lib64
-OPT = -std=c++14 -O3 -g
+
+OPT = -std=c++14 -g $(USER_COMPILE_FLAGS)
 
 TARGETDIR := bin
 SRCDIR := src

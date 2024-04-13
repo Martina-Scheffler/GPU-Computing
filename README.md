@@ -29,8 +29,25 @@ make
 g++ -o simple_transpose simple_transpose.cpp
 ```
 
+## Installing valgrind
+```bash
+sudo apt-get install valgrind
+```
+
 ## Sbatch
 ### Run File
 ```bash
 sbatch matrix_transpose_sbatch.sh
+```
+
+# Homework 1
+## Clone
+```bash
+git clone https://github.com/Martina-Scheffler/GPU-Computing.git
+```
+```bash
+cd GPU-Computing/Homework1/
+```
+```bash
+./compile_flag_analysis.sh
 ```

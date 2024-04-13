@@ -31,7 +31,8 @@ int main (int argc, char* argv[]){
 	if (atoi(argv[1]) == 0){ // use zero as a key to run tests for the paper
 		// open file to store execution times
 		std::ofstream myfile;
-		myfile.open("output/simple_transpose_03.csv");
+		string extension = argv[2]; // append extension to save output to the correct file
+		myfile.open("output/simple_transpose_" + extension + ".csv");
 
 		for (int i=1; i<=12; i++){ // from (2^1 x 2^1) to (2^10 x 2^10) matrices
 			for (int j=0; j<10; j++){ // run each size ten times to compensate fluctuations

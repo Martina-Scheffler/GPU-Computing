@@ -39,7 +39,3 @@ make
 
 ./bin/simple_transpose 0 03
 ./bin/block_transpose 0 03
-
-# generate plot using python script
-python3 ./visualization/plot.py
-

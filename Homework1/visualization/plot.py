@@ -1,4 +1,3 @@
-import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 plt.rcParams.update({'font.size': 22})

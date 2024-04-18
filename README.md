@@ -38,17 +38,17 @@ sbatch cache_analysis_sbatch.sh
 ```
 Then use either cg_annotate or kcachegrind to see details:
 ```bash
-cg_annotate --show-percs=yes simple_transpose.out
+cg_annotate --show-percs=yes valgrind/simple_transpose.out
 ```
 ```bash
-cg_annotate --show-percs=yes block_transpose.out
+cg_annotate --show-percs=yes valgrind/block_transpose.out
 ```
 
 ```bash
-kcachegrind simple_transpose.out
+kcachegrind valgrind/simple_transpose.out
 ```
 ```bash
-kcachegrind block_transpose.out
+kcachegrind valgrind/block_transpose.out
 ```
 
 ### Run single execution of one of the transpose algorithms

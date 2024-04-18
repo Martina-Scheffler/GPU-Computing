@@ -53,6 +53,8 @@ int main (int argc, char* argv[]){
 				if (j != 9){
 					myfile << ";";
 				}
+
+				free(A);
 				
 			}
 
@@ -85,6 +87,8 @@ int main (int argc, char* argv[]){
 
 		// display execution time
 		cout << "Execution Time: " << duration.count() << " ms" << endl;
+
+		free(A);
 	
 	}
 

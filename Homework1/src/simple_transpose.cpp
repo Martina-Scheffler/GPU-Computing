@@ -58,6 +58,9 @@ int main (int argc, char* argv[]){
 					myfile << ";";
 				}
 				
+				free(A);
+				free(A_t);
+				
 			}
 
 			// next line
@@ -89,6 +92,9 @@ int main (int argc, char* argv[]){
 
 		// display execution time
 		cout << "Execution Time: " << duration.count() << " ms" << endl;
+
+		free(A);
+		free(A_t);
 	
 	}
 

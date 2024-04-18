@@ -10,17 +10,8 @@ using namespace std;
 
 int BLOCK_SIZE = 32;
 
-void square_transpose(int *A, int N){
-	for (int i=0; i<N; i++){
-		for (int j=i+1; j<N; j++){
-			swap(A[N * i + j], A[j * N + i]);
-		}
-	}
-}
-
 void block_transpose(int *A, int n, int N){
 	if (n <= BLOCK_SIZE){
-		// square_transpose(A, n); todo: find out why this is not working
 		for (int i = 0; i < n; i++){
             for (int j = 0; j < i; j++){
                 swap(A[i * N + j], A[j * N + i]);
@@ -30,7 +21,6 @@ void block_transpose(int *A, int n, int N){
 	else {
 		int k = n / 2;  // divide matrix into blocks of n/2 x n/2
 
-		// todo: N or n in lower blocks?
 		block_transpose(A, k, N);  // upper left
 		block_transpose(A + k, k, N);  // upper right
 		block_transpose(A + k * N, k, N);  // lower left

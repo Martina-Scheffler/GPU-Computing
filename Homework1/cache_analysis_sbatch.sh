@@ -12,6 +12,8 @@
 rm -rf bin/
 rm -rf output/
 mkdir output/
+rm -rf valgrind/
+mkdir valgrind/
 
 # make with set flag -O3
 export USER_COMPILE_FLAGS=-O3

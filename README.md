@@ -33,10 +33,18 @@ python3 visualization/plot.py
 ```
 
 ### Analyze cache behavior
-e.g. for a (2^12 x 2^12) matrix:
 ```bash
-valgrind --tool=cachegrind --cache-sim=yes --cachegrind-out-file=valgrind/simple_transpose.out ./bin/simple_transpose 12
+sbatch cache_analysis_sbatch.sh
 ```
+
+### Run single execution of one of the transpose algorithms
+Modify transpose_sbatch.sh to set:
+- Compile flag
+- Algorithm
+- Matrix dimension
+
+Run:
 ```bash
-valgrind --tool=cachegrind --cache-sim=yes --cachegrind-out-file=valgrind/block_transpose.out ./bin/block_transpose 12
+sbatch transpose_sbatch.sh
 ```
+which executes the algorithm and prints the execution time to the .out file.

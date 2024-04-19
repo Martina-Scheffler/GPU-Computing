@@ -42,14 +42,19 @@ int main (int argc, char* argv[]){
 		throw runtime_error("Please enter an integer N as argument to generate a matrix of size 2^N x 2^N.");
 	}
 
+	if (argc >= 3){
+		BLOCK_SIZE = atoi(argv[2]);
+		cout << "Setting block size B to: " << BLOCK_SIZE << endl;
+	}
+
 	if (atoi(argv[1]) == 0){ // use zero as a key to run tests for the paper
 		// open file to store execution times
 		std::ofstream myfile;
-		string extension = argv[2]; // append extension to save output to the correct file
+		string extension = argv[3]; // append extension to save output to the correct file
 		myfile.open("output/block_transpose_" + extension + ".csv");
 
-		for (int i=1; i<=12; i++){ // from (2^1 x 2^1) to (2^10 x 2^10) matrices
-			for (int j=0; j<10; j++){ // run each size ten times to compensate fluctuations
+		for (int i=1; i<=12; i++){ // from (2^1 x 2^1) to (2^12 x 2^12) matrices
+			for (int j=0; j<20; j++){ // run each size twenty times to compensate fluctuations
 				int size = pow(2, i);
 
 				// generate random matrix
@@ -69,7 +74,7 @@ int main (int argc, char* argv[]){
 
 				// save execution time to file
 				myfile << duration.count();
-				if (j != 9){
+				if (j != 19){
 					myfile << ";";
 				}
 

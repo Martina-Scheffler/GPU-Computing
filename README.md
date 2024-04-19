@@ -29,7 +29,7 @@ scp name.surname@marzola.disi.unitn.it:~/GPU-Computing/Homework1/output/* .
 ```
 Generate the plot:
 ```bash
-python3 visualization/plot.py
+python3 visualization/plot_compile_flags.py
 ```
 
 ### Analyze cache behavior

@@ -36,6 +36,14 @@ python3 visualization/plot.py
 ```bash
 sbatch cache_analysis_sbatch.sh
 ```
+which executes
+```bash 
+valgrind --tool=cachegrind --cache-sim=yes --cachegrind-out-file=valgrind/simple_transpose.out ./bin/simple_transpose 12
+```
+```bash 
+valgrind --tool=cachegrind --cache-sim=yes --cachegrind-out-file=valgrind/simple_transpose.out ./bin/block_transpose 12
+```
+
 Then use either cg_annotate or kcachegrind to see details:
 ```bash
 cg_annotate --show-percs=yes valgrind/simple_transpose.out

@@ -18,4 +18,4 @@ export USER_COMPILE_FLAGS=-O3
 make
 
 # run, choose algorithm: ./bin/simple_transpose, ./bin/block_transpose and matrix dimension 
-./bin/block_transpose 12
+srun ./bin/block_transpose 12

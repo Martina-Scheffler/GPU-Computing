@@ -23,11 +23,11 @@ Prerequisites:
 - Pandas
 - Matplotlib
 
-e.g. copy to a computer where Matplotlib is installed:
+e.g. copy to a computer where Matplotlib is installed (into the output/ folder):
 ```bash
 scp name.surname@marzola.disi.unitn.it:~/GPU-Computing/Homework1/output/* .
 ```
-Generate the plot:
+Generate the plot (call from Homework1/ folder):
 ```bash
 python3 visualization/plot_compile_flags.py
 ```

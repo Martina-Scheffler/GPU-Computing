@@ -26,6 +26,3 @@ int* generate_continous_matrix(int size){
 	return matrix;
 }
 
-int main(void){
-	return 0;
-}

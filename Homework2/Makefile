@@ -22,7 +22,7 @@ $(TARGETDIR)/simple_transpose.o: $(SRCDIR)/simple_transpose.cu
 
 $(TARGETDIR)/matrix_generation.o: $(INCLUDE_CPP) $(INCLUDE_HEADERS)
 	mkdir -p $(@D)
-	$(CC) $^ -o $@ $(LIBS) $(OPT)
+	$(CC) -o $@ $< $(LIBS) $(OPT)
 
 $(TARGETDIR)/simple_transpose:
 	$(NVCC) -o $@ $(TARGETDIR)/simple_transpose.o $(TARGETDIR)/matrix_generation.o -lcudart -lcuda 

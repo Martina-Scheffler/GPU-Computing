@@ -5,7 +5,7 @@ OPT = -std=c++14
 
 NVCC = nvcc
 NVCC_FLAGS = 
-NVCC_LIBS = 
+NVCC_LIBS = -I$(CUDA_INSTALL_PATH)/include
 
 TARGETDIR := bin
 SRCDIR := src

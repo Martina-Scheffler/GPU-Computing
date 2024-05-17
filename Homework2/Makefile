@@ -14,7 +14,7 @@ INCLUDE_HEADERS := $(INCDIR)/matrix_generation.h
 INCLUDE_CPP := $(INCDIR)/matrix_generation.cpp
 
 
-all: $(TARGETDIR)/simple_transpose
+all: $(TARGETDIR)/simple_transpose $(TARGETDIR)/simple_transpose.o $(TARGETDIR)/matrix_generation.o
 
 $(TARGETDIR)/simple_transpose.o: $(SRCDIR)/simple_transpose.cu
 	mkdir -p $(@D)

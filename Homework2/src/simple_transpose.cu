@@ -36,15 +36,17 @@ int main(int argc, char* argv[]){
         int size = pow(2, atoi(argv[1]));
         int N = size * size;
 
+        cout << size << endl;
+
 		// call matrix generation with command line argument and receive matrix back
 		int* A = generate_continous_matrix(size);
 
-        for (int i=0; i<size; i++){
-            for (int j=0; j<size; i++){
-                cout << i*size + j << "\t";
-            }
-            cout << "\n";
-        }
+        // for (int i=0; i<size; i++){
+        //     for (int j=0; j<size; i++){
+        //         cout << i*size + j << "\t";
+        //     }
+        //     cout << "\n";
+        // }
 
         // allocate memory on device
         int *dev_A, *dev_A_t;

@@ -21,6 +21,6 @@ make
 rm ./bin/*.o
 
 # run
-./bin/simple_tranpose 2
+srun ./bin/simple_transpose 2
 
 

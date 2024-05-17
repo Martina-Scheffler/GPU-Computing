@@ -1,7 +1,7 @@
 CC = c++
 LIB_HOME=.
 LIBS=-L${LIB_HOME}/lib64
-OPT = -std=c++1
+OPT = -std=c++14
 
 NVCC = nvcc
 NVCC_FLAGS = 

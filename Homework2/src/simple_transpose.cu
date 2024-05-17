@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <cmath>
+#include <cuda_runtime.h>
 
 #include "../include/matrix_generation.h"
 
@@ -49,11 +50,11 @@ int main(int argc, char* argv[]){
         // start CUDA timer
 
         // determine kernel dimensions
-        dim3 nBlocks = (size / TILE_DIMENSION, size / TILE_DIMENSION, 1);
-        dim3 nThreads = (TILE_DIMENSION, BLOCK_ROWS, 1);
+        dim3 nBlocks (size / TILE_DIMENSION, size / TILE_DIMENSION, 1);
+        dim3 nThreads (TILE_DIMENSION, BLOCK_ROWS, 1);
 
         // run kernel
-        simpleTransposeKernel<<<nBlocks, nThreads>>>(A, A_t);
+        simpleTransposeKernel<<<nBlocks, nThreads>>>(dev_A, dev_A_t);
 
         // synchronize
         checkCudaErrors( cudaDeviceSynchronize() );

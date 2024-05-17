@@ -70,3 +70,16 @@ Run:
 sbatch transpose_sbatch.sh
 ```
 which executes the algorithm and prints the execution time to the .out file.
+
+
+## Homework 2
+### Clone
+```bash
+ssh name.surname@marzola.disi.unitn.it
+```
+```bash
+git clone https://github.com/Martina-Scheffler/GPU-Computing.git
+```
+```bash
+cd GPU-Computing/Homework2/
+```

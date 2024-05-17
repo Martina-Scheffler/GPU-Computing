@@ -20,13 +20,13 @@ $(TARGETDIR)/simple_transpose.o: $(SRCDIR)/simple_transpose.cu
 	mkdir -p $(@D)
 	$(NVCC) $(NVCC_FLAGS) -c $< -o $@ $(NVCC_LIBS) 
 
-$(TARGETDIR)/matrix_generation: $(INCLUDE_CPP) $(INCLUDE_HEADERS)
+$(TARGETDIR)/matrix_generation.o: $(INCLUDE_CPP) $(INCLUDE_HEADERS)
 	mkdir -p $(@D)
 	$(CC) $^ -o $@ $(LIBS) $(OPT)
 
 $(TARGETDIR)/simple_transpose:
-	$(NVCC) -o $@ $(TARGETDIR)/simple_transpose.o $(TARGETDIR)/matrix_generation -lcudart -lcuda 
+	$(NVCC) -o $@ $(TARGETDIR)/simple_transpose.o $(TARGETDIR)/matrix_generation.o -lcudart -lcuda 
 
-	
+
 clean:
 	$(TARGETDIR)/*

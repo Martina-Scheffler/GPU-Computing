@@ -43,8 +43,8 @@ int main(int argc, char* argv[]){
         // allocate memory on device
         int *dev_A, *dev_A_t;
 
-        checkCudaErrors( cudaMalloc(&dev_A, N * sizeof(float)) );
-        checkCudaErrors( cudaMalloc(&dev_A_t, N * sizeof(float)) );
+        cudaMalloc(&dev_A, N * sizeof(float));
+        cudaMalloc(&dev_A_t, N * sizeof(float));
 
         // copy matrix to device
         cudaMemcpy(dev_A, A, N * sizeof(float), cudaMemcpyHostToDevice);
@@ -59,7 +59,7 @@ int main(int argc, char* argv[]){
         simpleTransposeKernel<<<nBlocks, nThreads>>>(dev_A, dev_A_t);
 
         // synchronize
-        checkCudaErrors( cudaDeviceSynchronize() );
+        cudaDeviceSynchronize();
 
         // stop CUDA timer
 
@@ -72,8 +72,8 @@ int main(int argc, char* argv[]){
         // display result
         
         // free memory on device
-        checkCudaErrors( cudaFree(dev_A) );
-        checkCudaErrors( cudaFree(dev_A_t) );
+        cudaFree(dev_A);
+        cudaFree(dev_A_t);
 
         // free memory on host
         free(A);

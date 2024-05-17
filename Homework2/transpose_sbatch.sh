@@ -11,5 +11,16 @@
 # load cuda
 module load cuda
 
+# Clean before build
+rm -rf bin/
+
 # build
 make
+
+# clean after build
+rm ./bin/*.o
+
+# run
+./bin/simple_tranpose 2
+
+

@@ -17,8 +17,8 @@ INCLUDE_CPP := $(INCDIR)/matrix_generation.cpp
 
 all: $(TARGETDIR)/simple_transpose 
 
-$(TARGETDIR)/simple_transpose: $(SRCDIR)/simple_transpose.cu
-	$(NVCC) $(NVCC_FLAGS) -c $< -o $@ $(NVCC_LIBS)
+$(TARGETDIR)/simple_transpose: $(SRCDIR)/simple_transpose.cu $(INCLUDE_HEADERS)
+	$(NVCC) $(NVCC_FLAGS) -c $< -o $@ $(NVCC_LIBS) $(INCLUDE_CPP)
 
 clean:
 	$(TARGETDIR)/*

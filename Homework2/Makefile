@@ -21,7 +21,8 @@ $(TARGETDIR)/simple_transpose: $(TARGETDIR)/simple_transpose.o $(INCLUDE_HEADERS
 	mkdir -p $(@D)
 	$(CC) -o $@ $(LIBS) $(OPT) $(INCLUDE_CPP) $^
 
-$(TARGETDIR)/simple_transpose.o: $(SRCDIR)/simple_transpose.cu 
+$(TARGETDIR)/simple_transpose.o: $(SRCDIR)/simple_transpose.cu
+	mkdir -p $(@D)
 	$(NVCC) $(NVCC_FLAGS) -c $< -o $@ $(NVCC_LIBS) 
 
 

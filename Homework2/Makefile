@@ -11,7 +11,7 @@ TARGETDIR := bin
 SRCDIR := src
 INCDIR = include
 
-INCLUDE_HEADERS := $(INCDIR)/matrix_generation.h
+INCLUDE_HEADERS := $(INCDIR)/matrix_generation.h $(INCDIR)/helper_cuda.h
 INCLUDE_CPP := $(INCDIR)/matrix_generation.cpp
 
 

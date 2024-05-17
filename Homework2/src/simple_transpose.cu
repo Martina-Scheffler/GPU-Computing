@@ -69,6 +69,12 @@ int main(int argc, char* argv[]){
         cudaMemcpy(dev_A_t, A_t, N * sizeof(float), cudaMemcpyDeviceToHost);
 
         // display result
+        for (int i=0; i<size; i++){
+            for (int j=0; j<size; i++){
+                cout << A_t[i*size + j] << "\t";
+            }
+            cout << "\n";
+        }
         
         // free memory on device
         cudaFree(dev_A);

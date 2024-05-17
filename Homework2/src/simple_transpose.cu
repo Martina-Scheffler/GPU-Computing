@@ -4,7 +4,6 @@
 #include <cmath>
 #include <cuda_runtime.h>
 
-#include "../include/helper_cuda.h"
 
 #include "../include/matrix_generation.h"
 

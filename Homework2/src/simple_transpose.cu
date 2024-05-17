@@ -10,8 +10,8 @@
 
 using namespace std;
 
-#define TILE_DIMENSION 4;
-#define BLOCK_ROWS 1;
+#define TILE_DIMENSION 4
+#define BLOCK_ROWS 1
 
 __global__ void simpleTransposeKernel(int* A, int* A_T){
 	int x = blockIdx.x * TILE_DIMENSION + threadIdx.x;

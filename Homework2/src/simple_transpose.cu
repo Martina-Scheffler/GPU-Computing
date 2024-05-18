@@ -12,13 +12,35 @@ using namespace std;
 #define TILE_DIMENSION 4
 #define BLOCK_ROWS 1
 
-__global__ void simpleTransposeKernel(int* A, int* A_t){
+__global__ void simpleTransposeKernel(int* A, int* A_T){
 	int x = blockIdx.x * TILE_DIMENSION + threadIdx.x;
 	int y = blockIdx.y * TILE_DIMENSION + threadIdx.y;
     int width = gridDim.x * TILE_DIMENSION;
 
     for(int i=0; i<TILE_DIMENSION; i+=BLOCK_ROWS){
-        A_t[x * width + (y + i)] = A[(y + i) * width + x];
+        A_T[x * width + (y + i)] = A[(y + i) * width + x];
+    }
+}
+
+__global__ void transposeCoalesced(int *A, int *A)
+{
+    __shared__ int tile[TILE_DIMENSION * TILE_DIMENSION];
+
+    int x = blockIdx.x * TILE_DIMENSION + threadIdx.x;
+    int y = blockIdx.y * TILE_DIMENSION + threadIdx.y;
+    int width = gridDim.x * TILE_DIMENSION;
+
+    for (int i=0; i<TILE_DIMENSION; i+=BLOCK_ROWS){
+        tile[TILE_DIMENSION * (threadIdx.y + i) + threadIdx.x] = A[(y + i) * width + x];
+    }
+        
+    __syncthreads();
+
+    x = blockIdx.y * TILE_DIMENSION + threadIdx.x;  // transpose block offset
+    y = blockIdx.x * TILE_DIMENSION + threadIdx.y;
+
+    for (int i=0; i<TILE_DIMENSION; i+=BLOCK_ROWS){
+        A_T[(y + i) * width + x] = tile[(TILE_DIMENSION * threadIdx.x) + (threadIdx.y + i)];
     }
 }
 
@@ -49,10 +71,10 @@ int main(int argc, char* argv[]){
         }
 
         // allocate memory on device
-        int *dev_A, *dev_A_t;
+        int *dev_A, *dev_A_T;
 
         cudaMalloc(&dev_A, N * sizeof(int));
-        cudaMalloc(&dev_A_t, N * sizeof(int));
+        cudaMalloc(&dev_A_T, N * sizeof(int));
 
         // copy matrix to device
         cudaMemcpy(dev_A, A, N * sizeof(int), cudaMemcpyHostToDevice);
@@ -64,7 +86,8 @@ int main(int argc, char* argv[]){
         dim3 nThreads (TILE_DIMENSION, BLOCK_ROWS, 1);
 
         // run kernel
-        simpleTransposeKernel<<<nBlocks, nThreads>>>(dev_A, dev_A_t);
+        simpleTransposeKernel<<<nBlocks, nThreads>>>(dev_A, dev_A_T);
+        // transposeCoalesced<<<nBlocks, nThreads>>>(dev_A, dev_A_T);
 
         // synchronize
         cudaDeviceSynchronize();
@@ -72,10 +95,10 @@ int main(int argc, char* argv[]){
         // stop CUDA timer
 
         // allocate memory on host
-        int* A_t = (int*) malloc(N * sizeof(int));
+        int* A_T = (int*) malloc(N * sizeof(int));
 
         // copy back
-        cudaMemcpy(dev_A_t, A_t, N * sizeof(int), cudaMemcpyDeviceToHost);
+        cudaMemcpy(dev_A_T, A_T, N * sizeof(int), cudaMemcpyDeviceToHost);
 
         // display result
         // for (int i=0; i<size; i++){
@@ -87,11 +110,11 @@ int main(int argc, char* argv[]){
         
         // free memory on device
         cudaFree(dev_A);
-        cudaFree(dev_A_t);
+        cudaFree(dev_A_T);
 
         // free memory on host
         free(A);
-        free(A_t);
+        free(A_T);
 
         return 0;
     }

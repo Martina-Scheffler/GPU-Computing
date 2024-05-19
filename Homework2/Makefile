@@ -14,9 +14,9 @@ INCLUDE_HEADERS := $(INCDIR)/matrix_generation.h
 INCLUDE_CPP := $(INCDIR)/matrix_generation.cpp
 
 
-all:  $(TARGETDIR)/simple_transpose.o $(TARGETDIR)/matrix_generation.o $(TARGETDIR)/simple_transpose
+all:  $(TARGETDIR)/transpose.o $(TARGETDIR)/matrix_generation.o $(TARGETDIR)/transpose
 
-$(TARGETDIR)/simple_transpose.o: $(SRCDIR)/simple_transpose.cu
+$(TARGETDIR)/transpose.o: $(SRCDIR)/transpose.cu
 	mkdir -p $(@D)
 	$(NVCC) $(NVCC_FLAGS) -c $< -o $@ $(NVCC_LIBS) 
 
@@ -24,8 +24,8 @@ $(TARGETDIR)/matrix_generation.o: $(INCLUDE_CPP) $(INCLUDE_HEADERS)
 	mkdir -p $(@D)
 	$(CC) -o $@ -c $< $(LIBS) $(OPT)
 
-$(TARGETDIR)/simple_transpose:
-	$(NVCC) -o $@ $(TARGETDIR)/simple_transpose.o $(TARGETDIR)/matrix_generation.o -lcudart -lcuda 
+$(TARGETDIR)/transpose:
+	$(NVCC) -o $@ $(TARGETDIR)/transpose.o $(TARGETDIR)/matrix_generation.o -lcudart -lcuda 
 
 
 clean:

@@ -12,7 +12,7 @@ using namespace std;
 #define TILE_DIMENSION 4
 #define BLOCK_ROWS 1
 
-__global__ void simpleTransposeKernel(int* A, int* A_T){
+__global__ void transposeSimple(int* A, int* A_T){
 	int x = blockIdx.x * TILE_DIMENSION + threadIdx.x;
 	int y = blockIdx.y * TILE_DIMENSION + threadIdx.y;
     int width = gridDim.x * TILE_DIMENSION;
@@ -22,16 +22,15 @@ __global__ void simpleTransposeKernel(int* A, int* A_T){
     }
 }
 
-__global__ void transposeCoalesced(int *A, int *A)
-{
-    __shared__ int tile[TILE_DIMENSION * TILE_DIMENSION];
+__global__ void transposeCoalesced(int *A, int *A_T){
+    _shared__ float tile[TILE_DIMENSION][TILE_DIMENSION + 1];  // +1 in y to avoid bank conflicts
 
     int x = blockIdx.x * TILE_DIMENSION + threadIdx.x;
     int y = blockIdx.y * TILE_DIMENSION + threadIdx.y;
     int width = gridDim.x * TILE_DIMENSION;
 
     for (int i=0; i<TILE_DIMENSION; i+=BLOCK_ROWS){
-        tile[TILE_DIMENSION * (threadIdx.y + i) + threadIdx.x] = A[(y + i) * width + x];
+        tile[threadIdx.y + i][threadIdx.x] = A[(y + i) * width + x];
     }
         
     __syncthreads();
@@ -40,7 +39,33 @@ __global__ void transposeCoalesced(int *A, int *A)
     y = blockIdx.x * TILE_DIMENSION + threadIdx.y;
 
     for (int i=0; i<TILE_DIMENSION; i+=BLOCK_ROWS){
-        A_T[(y + i) * width + x] = tile[(TILE_DIMENSION * threadIdx.x) + (threadIdx.y + i)];
+        A_T[(y + i) * width + x] = tile[threadIdx.x][threadIdx.y + i];
+    }
+}
+
+__global__ void transposeDiagonal(int *A, int *A_T){
+    __shared__ float tile[TILE_DIMENSION][TILE_DIMENSION + 1];
+
+    // diagonal reordering
+    int blockIdx_y = blockIdx.x;
+    int blockIdx_x = (blockIdx.x + blockIdx.y) % gridDim.x
+
+    int x = blockIdx_x * TILE_DIMENSION + threadIdx.x;
+    int y = blockIdx_y * TILE_DIMENSION + threadIdx.y;
+    int width = gridDim.x * TILE_DIMENSION;
+
+
+    for (int i=0; i<TILE_DIMENSION; i+=BLOCK_ROWS){
+        tile[threadIdx.y + i][threadIdx.x] = A[(y + i) * width + x];
+    }
+        
+    __syncthreads();
+
+    x = blockIdx_y * TILE_DIMENSION + threadIdx.x;  
+    y = blockIdx_x * TILE_DIMENSION + threadIdx.y;
+
+    for (int i=0; i<TILE_DIMENSION; i+=BLOCK_ROWS){
+        A_T[(y + i) * width + x] = tile[threadIdx.x][threadIdx.y + i];
     }
 }
 
@@ -70,6 +95,9 @@ int main(int argc, char* argv[]){
             cout << "\n";
         }
 
+        // allocate memory on host
+        int* A_T = (int*) malloc(N * sizeof(int));
+
         // allocate memory on device
         int *dev_A, *dev_A_T;
 
@@ -86,16 +114,14 @@ int main(int argc, char* argv[]){
         dim3 nThreads (TILE_DIMENSION, BLOCK_ROWS, 1);
 
         // run kernel
-        simpleTransposeKernel<<<nBlocks, nThreads>>>(dev_A, dev_A_T);
-        // transposeCoalesced<<<nBlocks, nThreads>>>(dev_A, dev_A_T);
+        transposeSimple<<<nBlocks, nThreads>>>(dev_A, dev_A_T);
+        // transposeCoalesced<<<nBlocks, nThreads>>>(A, A_T);
+        // transposeDiagonal<<nBlocks, nThreads>>>(A, A_T)
 
         // synchronize
         cudaDeviceSynchronize();
 
         // stop CUDA timer
-
-        // allocate memory on host
-        int* A_T = (int*) malloc(N * sizeof(int));
 
         // copy back
         cudaMemcpy(dev_A_T, A_T, N * sizeof(int), cudaMemcpyDeviceToHost);
@@ -103,7 +129,7 @@ int main(int argc, char* argv[]){
         // display result
         // for (int i=0; i<size; i++){
         //     for (int j=0; j<size; i++){
-        //         cout << A_t[i*size + j] << "\t";
+        //         cout << A_T[i*size + j] << "\t";
         //     }
         //     cout << "\n";
         // }

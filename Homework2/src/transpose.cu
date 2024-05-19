@@ -23,7 +23,7 @@ __global__ void transposeSimple(int* A, int* A_T){
 }
 
 __global__ void transposeCoalesced(int *A, int *A_T){
-    _shared__ int tile[TILE_DIMENSION][TILE_DIMENSION + 1];  // +1 in y to avoid bank conflicts
+    __shared__ int tile[TILE_DIMENSION][TILE_DIMENSION + 1];  // +1 in y to avoid bank conflicts
 
     int x = blockIdx.x * TILE_DIMENSION + threadIdx.x;
     int y = blockIdx.y * TILE_DIMENSION + threadIdx.y;

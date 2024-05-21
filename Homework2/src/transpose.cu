@@ -14,6 +14,13 @@ using namespace std;
 
 int strategy = 0;
 
+__global__ void warm_up_gpu(){
+    unsigned int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    float ia, ib;
+    ia = ib = 0.0f;
+    ib += ia + tid; 
+}
+
 __global__ void transposeSimple(int* A, int* A_T){
 	int x = blockIdx.x * TILE_DIMENSION + threadIdx.x;
 	int y = blockIdx.y * TILE_DIMENSION + threadIdx.y;
@@ -127,7 +134,7 @@ int main(int argc, char* argv[]){
 	    cudaEventCreate(&stop);
 
         // warmup to avoid timing startup TODO: is this necessary?
-        transposeSimple<<<nBlocks, nThreads>>>(dev_A, dev_A_T);
+        warm_up_gpu<<<nBlocks, nThreads>>>();
 
         // start CUDA timer 
         cudaEventRecord(start);
@@ -159,7 +166,7 @@ int main(int argc, char* argv[]){
 
 	    printf("Kernel Time: %f ms\n", milliseconds);
 
-        // copy back - only necessary for simple kernel
+        // copy back to host
         cudaMemcpy(A_T, dev_A_T, N * sizeof(int), cudaMemcpyDeviceToHost);
         
         // // display result

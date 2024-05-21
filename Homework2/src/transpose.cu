@@ -21,8 +21,6 @@ __global__ void transposeSimple(int* A, int* A_T){
 
     for(int i=0; i<TILE_DIMENSION; i+=BLOCK_ROWS){
         A_T[x * width + (y + i)] = A[(y + i) * width + x];
-        printf("Block (%d, %d), Thread (%d, %d)\n", blockIdx.x, blockIdx.y, threadIdx.x, threadIdx.y);
-        printf("Transpose %d, Original %d\n", A_T[x * width + (y + i)], A[(y + i) * width + x]);
     }
 
 
@@ -46,6 +44,8 @@ __global__ void transposeCoalesced(int *A, int *A_T){
 
     for (int i=0; i<TILE_DIMENSION; i+=BLOCK_ROWS){
         A_T[(y + i) * width + x] = tile[threadIdx.x][threadIdx.y + i];
+        printf("Block (%d, %d), Thread (%d, %d)\n", blockIdx.x, blockIdx.y, threadIdx.x, threadIdx.y);
+        printf("Transpose %d, Original %d\n", A_T[(y + i) * width + x], tile[threadIdx.x][threadIdx.y + i]);
     }
 }
 

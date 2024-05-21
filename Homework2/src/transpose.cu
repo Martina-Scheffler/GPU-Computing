@@ -19,7 +19,10 @@ __global__ void transposeSimple(int* A, int* A_T){
 
     for(int i=0; i<TILE_DIMENSION; i+=BLOCK_ROWS){
         A_T[x * width + (y + i)] = A[(y + i) * width + x];
+        cout << x * width + (y + i) << " is " << (y + i) * width + x << endl;
     }
+
+
 }
 
 __global__ void transposeCoalesced(int *A, int *A_T){
@@ -90,10 +93,11 @@ int main(int argc, char* argv[]){
 
         for (int i=0; i<size; i++){
             for (int j=0; j<size; j++){
-                cout << A[i * size + j];
+                cout << A[i * size + j] << "\t";
             }
             cout << endl;
         }
+        cout << endl;
 
         // allocate memory on host
         int* A_T = (int*) malloc(N * sizeof(int));
@@ -113,6 +117,9 @@ int main(int argc, char* argv[]){
         dim3 nBlocks (size / TILE_DIMENSION, size / TILE_DIMENSION, 1);
         dim3 nThreads (TILE_DIMENSION, BLOCK_ROWS, 1);
 
+        cout << "Blocks: " << (int) nBlocks[0] << endl;
+        cout << "Threads: " << (int) nThreads[0] << endl;
+
         // run kernel
         transposeSimple<<<nBlocks, nThreads>>>(dev_A, dev_A_T);
         // transposeCoalesced<<<nBlocks, nThreads>>>(A, A_T);
@@ -129,7 +136,7 @@ int main(int argc, char* argv[]){
         // display result
         for (int i=0; i<size; i++){
             for (int j=0; j<size; j++){
-                cout << A_T[i*size + j];
+                cout << A_T[i*size + j] << "\t";
             }
             cout << endl;
         }

@@ -20,6 +20,7 @@ int* generate_continous_matrix(int size){
 	for (int i=0; i<size; i++){
 		for (int j=0; j<size; j++){
 			matrix[i * size + j] = i * size + j;  // fill with numbers counting up from zero
+			cout << matrix[i * size + j] << endl;
 		}
 	}
 

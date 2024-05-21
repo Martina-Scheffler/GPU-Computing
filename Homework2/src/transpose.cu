@@ -88,12 +88,12 @@ int main(int argc, char* argv[]){
 		// call matrix generation with command line argument and receive matrix back
 		int* A = generate_continous_matrix(size);
 
-        for (int i=0; i<size; i++){
-            for (int j=0; j<size; i++){
-                cout << A[i*size + j] << "\t";
-            }
-            cout << "\n";
-        }
+        // for (int i=0; i<size; i++){
+        //     for (int j=0; j<size; i++){
+        //         cout << A[i*size + j];
+        //     }
+        //     cout << endl;
+        // }
 
         // allocate memory on host
         int* A_T = (int*) malloc(N * sizeof(int));

@@ -12,6 +12,8 @@ using namespace std;
 #define TILE_DIMENSION 4
 #define BLOCK_ROWS 1
 
+int strategy = 0;
+
 __global__ void transposeSimple(int* A, int* A_T){
 	int x = blockIdx.x * TILE_DIMENSION + threadIdx.x;
 	int y = blockIdx.y * TILE_DIMENSION + threadIdx.y;
@@ -79,6 +81,9 @@ int main(int argc, char* argv[]){
 	if (argc < 2){
 		throw runtime_error("Please enter an integer N as argument to generate a matrix of size 2^N x 2^N.");
 	}
+    if (argc == 3){
+        strategy = atoi(argv[2]);  // Strategy: 0 = Simple, 1 = Coalesced, 2 = Diagonal
+    }
     
     if (atoi(argv[1]) == 0){
         // use zero for something later
@@ -103,15 +108,19 @@ int main(int argc, char* argv[]){
         // allocate memory on host
         int* A_T = (int*) malloc(N * sizeof(int));
 
-        // allocate memory on device
-        int *dev_A, *dev_A_T;
+        if (strategy == 0){
+            // only for the simple kernel is a copy to the device necessary
 
-        cudaMalloc(&dev_A, N * sizeof(int));
-        cudaMalloc(&dev_A_T, N * sizeof(int));
+            // allocate memory on device
+            int *dev_A, *dev_A_T;
 
-        // copy matrix to device
-        cudaMemcpy(dev_A, A, N * sizeof(int), cudaMemcpyHostToDevice);
+            cudaMalloc(&dev_A, N * sizeof(int));
+            cudaMalloc(&dev_A_T, N * sizeof(int));
 
+            // copy matrix to device
+            cudaMemcpy(dev_A, A, N * sizeof(int), cudaMemcpyHostToDevice);
+        }
+        
         // start CUDA timer
 
         // determine kernel dimensions
@@ -122,18 +131,33 @@ int main(int argc, char* argv[]){
         cout << "Threads: " << TILE_DIMENSION << " " << BLOCK_ROWS << endl;
 
         // run kernel
-        transposeSimple<<<nBlocks, nThreads>>>(dev_A, dev_A_T);
-        // transposeCoalesced<<<nBlocks, nThreads>>>(A, A_T);
-        // transposeDiagonal<<nBlocks, nThreads>>>(A, A_T)
+        if (strategy == 0){
+            transposeSimple<<<nBlocks, nThreads>>>(dev_A, dev_A_T);
+        }
+        else if (strategy == 1){
+            transposeCoalesced<<<nBlocks, nThreads>>>(A, A_T);
+        }
+        else if (strategy == 2){
+            transposeDiagonal<<nBlocks, nThreads>>>(A, A_T);
+        }
+        else {
+            throw runtime_error("Please choose 0, 1 or 2 for the strategy.");
+        }
 
         // synchronize
         cudaDeviceSynchronize();
 
         // stop CUDA timer
 
-        // copy back
-        cudaMemcpy(A_T, dev_A_T, N * sizeof(int), cudaMemcpyDeviceToHost);
+        if (strategy == 0){
+            // copy back - only necessary for simple kernel
+            cudaMemcpy(A_T, dev_A_T, N * sizeof(int), cudaMemcpyDeviceToHost);
 
+            // free memory on device
+            cudaFree(dev_A);
+            cudaFree(dev_A_T);
+        }
+        
         // display result
         for (int i=0; i<size; i++){
             for (int j=0; j<size; j++){
@@ -141,10 +165,6 @@ int main(int argc, char* argv[]){
             }
             cout << endl;
         }
-        
-        // free memory on device
-        cudaFree(dev_A);
-        cudaFree(dev_A_T);
 
         // free memory on host
         free(A);

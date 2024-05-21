@@ -22,12 +22,9 @@ __global__ void transposeSimple(int* A, int* A_T){
     for(int i=0; i<TILE_DIMENSION; i+=BLOCK_ROWS){
         A_T[x * width + (y + i)] = A[(y + i) * width + x];
     }
-
-
 }
 
 __global__ void transposeCoalesced(int *A, int *A_T){
-    printf("Kernel 1");
     __shared__ int tile[TILE_DIMENSION][TILE_DIMENSION + 1];  // +1 in y to avoid bank conflicts
 
     int x = blockIdx.x * TILE_DIMENSION + threadIdx.x;
@@ -39,6 +36,13 @@ __global__ void transposeCoalesced(int *A, int *A_T){
     }
         
     __syncthreads();
+
+    for (int i=0; i<TILE_DIMENSION; i++){
+        for (int j=0; j<TILE_DIMENSION; j++){
+            printf("%d\t", tile[i][j]);
+        }
+        printf("\n");
+    }
 
     x = blockIdx.y * TILE_DIMENSION + threadIdx.x;  // transpose block offset
     y = blockIdx.x * TILE_DIMENSION + threadIdx.y;

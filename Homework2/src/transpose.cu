@@ -25,7 +25,7 @@ __global__ void transposeSimple(int* A, int* A_T){
 }
 
 __global__ void transposeCoalesced(int *A, int *A_T){
-    __shared__ int tile[TILE_DIMENSION][TILE_DIMENSION + 1];  // +1 in y to avoid bank conflicts
+    extern __shared__ int tile[TILE_DIMENSION][TILE_DIMENSION + 1];  // +1 in y to avoid bank conflicts
 
     int x = blockIdx.x * TILE_DIMENSION + threadIdx.x;
     int y = blockIdx.y * TILE_DIMENSION + threadIdx.y;
@@ -35,10 +35,7 @@ __global__ void transposeCoalesced(int *A, int *A_T){
     printf("Tile Dimension: %d\n", TILE_DIMENSION);
     printf("Block Rows: %d\n", BLOCK_ROWS);
 
-    int td = TILE_DIMENSION;
-    int br = BLOCK_ROWS;
-
-    for (int i=0; i<td; i+=br){
+    for (int i=0; i<TILE_DIMENSION; i+=BLOCK_ROWS){
         tile[threadIdx.y + i][threadIdx.x] = A[(y + i) * width + x];
         printf("Read value: %d", A[(y + i) * width + x]);
     }
@@ -63,7 +60,7 @@ __global__ void transposeCoalesced(int *A, int *A_T){
 }
 
 __global__ void transposeDiagonal(int *A, int *A_T){
-    __shared__ int tile[TILE_DIMENSION][TILE_DIMENSION + 1];
+    extern __shared__ int tile[TILE_DIMENSION][TILE_DIMENSION + 1];
 
     // diagonal reordering
     int blockIdx_y = blockIdx.x;

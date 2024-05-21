@@ -126,6 +126,9 @@ int main(int argc, char* argv[]){
 	    cudaEventCreate(&start);
 	    cudaEventCreate(&stop);
 
+        // warmup to avoid timing startup TODO: is this necessary?
+        transposeSimple<<<nBlocks, nThreads>>>(dev_A, dev_A_T);
+
         // start CUDA timer 
         cudaEventRecord(start);
             

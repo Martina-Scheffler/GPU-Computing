@@ -22,5 +22,3 @@ rm ./bin/*.o
 
 # run
 srun ./bin/transpose 2 1
-
-

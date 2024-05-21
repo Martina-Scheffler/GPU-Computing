@@ -31,31 +31,17 @@ __global__ void transposeCoalesced(int *A, int *A_T){
     int y = blockIdx.y * TILE_DIMENSION + threadIdx.y;
     int width = gridDim.x * TILE_DIMENSION;
 
-    printf("x: %d, y: %d, width: %d\n", x, y, width);
-    printf("Tile Dimension: %d\n", TILE_DIMENSION);
-    printf("Block Rows: %d\n", BLOCK_ROWS);
-
     for (int i=0; i<TILE_DIMENSION; i+=BLOCK_ROWS){
         tile[threadIdx.y + i][threadIdx.x] = A[(y + i) * width + x];
-        printf("Read value: %d", A[(y + i) * width + x]);
     }
         
     __syncthreads();
-
-    for (int i=0; i<TILE_DIMENSION; i++){
-        for (int j=0; j<TILE_DIMENSION; j++){
-            printf("%d\t", tile[i][j]);
-        }
-        printf("\n");
-    }
 
     x = blockIdx.y * TILE_DIMENSION + threadIdx.x;  // transpose block offset
     y = blockIdx.x * TILE_DIMENSION + threadIdx.y;
 
     for (int i=0; i<TILE_DIMENSION; i+=BLOCK_ROWS){
         A_T[(y + i) * width + x] = tile[threadIdx.x][threadIdx.y + i];
-        printf("Block (%d, %d), Thread (%d, %d)\n", blockIdx.x, blockIdx.y, threadIdx.x, threadIdx.y);
-        printf("Transpose %d, Original %d\n", A_T[(y + i) * width + x], tile[threadIdx.x][threadIdx.y + i]);
     }
 }
 
@@ -103,7 +89,7 @@ int main(int argc, char* argv[]){
         int size = pow(2, atoi(argv[1]));
         int N = size * size;
 
-        cout << size << endl;
+        cout << "Size: " << size << endl;
 
 		// call matrix generation with command line argument and receive matrix back
 		int* A = generate_continous_matrix(size);

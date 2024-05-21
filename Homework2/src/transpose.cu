@@ -108,7 +108,14 @@ int main(int argc, char* argv[]){
         // allocate memory on host
         int* A_T = (int*) malloc(N * sizeof(int));
 
-        if (strategy == 0){
+        // determine kernel dimensions
+        dim3 nBlocks (size / TILE_DIMENSION, size / TILE_DIMENSION, 1);
+        dim3 nThreads (TILE_DIMENSION, BLOCK_ROWS, 1);
+
+        cout << "Blocks: " << size / TILE_DIMENSION << endl;
+        cout << "Threads: " << TILE_DIMENSION << " " << BLOCK_ROWS << endl;
+
+        if (strategy == 0){  // Simple kernel
             // only for the simple kernel is a copy to the device necessary
 
             // allocate memory on device
@@ -119,43 +126,50 @@ int main(int argc, char* argv[]){
 
             // copy matrix to device
             cudaMemcpy(dev_A, A, N * sizeof(int), cudaMemcpyHostToDevice);
-        }
-        
-        // start CUDA timer
 
-        // determine kernel dimensions
-        dim3 nBlocks (size / TILE_DIMENSION, size / TILE_DIMENSION, 1);
-        dim3 nThreads (TILE_DIMENSION, BLOCK_ROWS, 1);
+            // start CUDA timer 
 
-        cout << "Blocks: " << size / TILE_DIMENSION << endl;
-        cout << "Threads: " << TILE_DIMENSION << " " << BLOCK_ROWS << endl;
-
-        // run kernel
-        if (strategy == 0){
+            // run kernel
             transposeSimple<<<nBlocks, nThreads>>>(dev_A, dev_A_T);
-        }
-        else if (strategy == 1){
-            transposeCoalesced<<<nBlocks, nThreads>>>(A, A_T);
-        }
-        else if (strategy == 2){
-            transposeDiagonal<<nBlocks, nThreads>>>(A, A_T);
-        }
-        else {
-            throw runtime_error("Please choose 0, 1 or 2 for the strategy.");
-        }
 
-        // synchronize
-        cudaDeviceSynchronize();
+            // synchronize
+            cudaDeviceSynchronize();
 
-        // stop CUDA timer
+            // stop CUDA timer
 
-        if (strategy == 0){
             // copy back - only necessary for simple kernel
             cudaMemcpy(A_T, dev_A_T, N * sizeof(int), cudaMemcpyDeviceToHost);
 
             // free memory on device
             cudaFree(dev_A);
             cudaFree(dev_A_T);
+
+
+        }
+        else if (strategy == 1){  // Coalesced kernel
+            // start CUDA timer
+
+            // run kernel
+            transposeCoalesced<<<nBlocks, nThreads>>>(A, A_T);
+
+            // synchronize
+            cudaDeviceSynchronize();
+
+            // stop CUDA timer
+        }
+        else if (strategy == 2){  // Diagonal kernel
+            // start CUDA timer
+
+            // run kernel
+            transposeDiagonal<<<nBlocks, nThreads>>>(A, A_T);
+
+            // synchronize
+            cudaDeviceSynchronize();
+
+            // stop CUDA timer
+        }
+        else {
+            throw runtime_error("Please choose 0, 1 or 2 for the strategy.");
         }
         
         // display result

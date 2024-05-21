@@ -132,7 +132,7 @@ int main(int argc, char* argv[]){
         // stop CUDA timer
 
         // copy back
-        cudaMemcpy(dev_A_T, A_T, N * sizeof(int), cudaMemcpyDeviceToHost);
+        cudaMemcpy(A_T, dev_A_T, N * sizeof(int), cudaMemcpyDeviceToHost);
 
         // display result
         for (int i=0; i<size; i++){

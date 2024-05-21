@@ -27,6 +27,7 @@ __global__ void transposeSimple(int* A, int* A_T){
 }
 
 __global__ void transposeCoalesced(int *A, int *A_T){
+    printf("Kernel 1");
     __shared__ int tile[TILE_DIMENSION][TILE_DIMENSION + 1];  // +1 in y to avoid bank conflicts
 
     int x = blockIdx.x * TILE_DIMENSION + threadIdx.x;
@@ -83,7 +84,7 @@ int main(int argc, char* argv[]){
 	}
     if (argc >= 3){
         strategy = atoi(argv[2]);  // Strategy: 0 = Simple, 1 = Coalesced, 2 = Diagonal
-        printf("Strategy %d", strategy);
+        printf("Strategy %d\n", strategy);
     }
     
     if (atoi(argv[1]) == 0){

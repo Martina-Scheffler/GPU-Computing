@@ -24,8 +24,8 @@ __global__ void transposeSimple(int* A, int* A_T){
     }
 }
 
-__global__ void transposeCoalesced(const int *A, int *A_T){
-    extern __shared__ int tile[TILE_DIMENSION][TILE_DIMENSION + 1];  // +1 in y to avoid bank conflicts
+__global__ void transposeCoalesced(int *A, int *A_T){
+    __shared__ int tile[TILE_DIMENSION][TILE_DIMENSION + 1];  // +1 in y to avoid bank conflicts
 
     int x = blockIdx.x * TILE_DIMENSION + threadIdx.x;
     int y = blockIdx.y * TILE_DIMENSION + threadIdx.y;
@@ -60,7 +60,7 @@ __global__ void transposeCoalesced(const int *A, int *A_T){
 }
 
 __global__ void transposeDiagonal(int *A, int *A_T){
-    extern __shared__ int tile[TILE_DIMENSION][TILE_DIMENSION + 1];
+    __shared__ int tile[TILE_DIMENSION][TILE_DIMENSION + 1];
 
     // diagonal reordering
     int blockIdx_y = blockIdx.x;
@@ -126,62 +126,38 @@ int main(int argc, char* argv[]){
         cout << "Blocks: " << size / TILE_DIMENSION << endl;
         cout << "Threads: " << TILE_DIMENSION << " " << BLOCK_ROWS << endl;
 
+        // allocate memory on device
+        int *dev_A, *dev_A_T;
+
+        cudaMalloc(&dev_A, N * sizeof(int));
+        cudaMalloc(&dev_A_T, N * sizeof(int));
+
+        // copy matrix to device
+        cudaMemcpy(dev_A, A, N * sizeof(int), cudaMemcpyHostToDevice);
+
+        // start CUDA timer 
+            
+        // run kernel
         if (strategy == 0){  // Simple kernel
-            // only for the simple kernel is a copy to the device necessary
-
-            // allocate memory on device
-            int *dev_A, *dev_A_T;
-
-            cudaMalloc(&dev_A, N * sizeof(int));
-            cudaMalloc(&dev_A_T, N * sizeof(int));
-
-            // copy matrix to device
-            cudaMemcpy(dev_A, A, N * sizeof(int), cudaMemcpyHostToDevice);
-
-            // start CUDA timer 
-
-            // run kernel
             transposeSimple<<<nBlocks, nThreads>>>(dev_A, dev_A_T);
-
-            // synchronize
-            cudaDeviceSynchronize();
-
-            // stop CUDA timer
-
-            // copy back - only necessary for simple kernel
-            cudaMemcpy(A_T, dev_A_T, N * sizeof(int), cudaMemcpyDeviceToHost);
-
-            // free memory on device
-            cudaFree(dev_A);
-            cudaFree(dev_A_T);
-
-
         }
         else if (strategy == 1){  // Coalesced kernel
-            // start CUDA timer
-
-            // run kernel
-            transposeCoalesced<<<nBlocks, nThreads>>>(A, A_T);
-
-            // synchronize
-            cudaDeviceSynchronize();
-
-            // stop CUDA timer
+            transposeCoalesced<<<nBlocks, nThreads>>>(dev_A, dev_A_T);
         }
         else if (strategy == 2){  // Diagonal kernel
-            // start CUDA timer
-
-            // run kernel
-            transposeDiagonal<<<nBlocks, nThreads>>>(A, A_T);
-
-            // synchronize
-            cudaDeviceSynchronize();
-
-            // stop CUDA timer
+            transposeDiagonal<<<nBlocks, nThreads>>>(dev_A, dev_A_T);
         }
         else {
             throw runtime_error("Please choose 0, 1 or 2 for the strategy.");
         }
+
+        // synchronize
+        cudaDeviceSynchronize();
+
+        // stop CUDA timer
+
+        // copy back - only necessary for simple kernel
+        cudaMemcpy(A_T, dev_A_T, N * sizeof(int), cudaMemcpyDeviceToHost);
         
         // display result
         for (int i=0; i<size; i++){
@@ -190,6 +166,10 @@ int main(int argc, char* argv[]){
             }
             cout << endl;
         }
+
+        // free memory on device
+        cudaFree(dev_A);
+        cudaFree(dev_A_T);
 
         // free memory on host
         free(A);

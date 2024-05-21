@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <cmath>
 #include <cuda_runtime.h>
+#include <fstream>
 
 
 #include "../include/matrix_generation.h"
@@ -97,6 +98,12 @@ int main(int argc, char* argv[]){
     
     if (atoi(argv[1]) == 0){
         // use zero for analyzing the effective bandwidth with different matrix sizes and parameters
+
+        // open file to store execution times
+		std::ofstream myfile;
+		string extension = argv[2]; // append extension to save output to the correct file
+		myfile.open("output/analyze_bandwidth_" + extension + ".csv");
+
         for (int i=2; i<=pow(2, 12); i*=2){  // from 2^1 to 2^12
             // matrix dimension
             int size = i; 
@@ -173,7 +180,8 @@ int main(int argc, char* argv[]){
                     // divide by NUM_REPS to get mean
                     milliseconds /= NUM_REPS;
 
-                    // Write time to file TODO
+                    // save execution time to file
+				    myfile << milliseconds << ";";;
 
                     // copy back to host
                     cudaMemcpy(A_T, dev_A_T, N * sizeof(int), cudaMemcpyDeviceToHost);
@@ -192,8 +200,12 @@ int main(int argc, char* argv[]){
 
                     return 0;
                 }
+                myfile << "\n";  // new line in csv file
             }
+            myfile << "\n";  // free line in csv file
         }
+        // close file
+		myfile.close();
 
     }
     else {

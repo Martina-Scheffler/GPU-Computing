@@ -12,6 +12,8 @@
 module load cuda
 
 # Clean before build
+rm -rf output/
+mkdir output/
 rm -rf bin/
 
 # build
@@ -22,3 +24,7 @@ rm ./bin/*.o
 
 # run
 srun ./bin/transpose 0 0 
+
+srun ./bin/transpose 0 1
+
+srun ./bin/transpose 0 2

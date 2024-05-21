@@ -121,7 +121,13 @@ int main(int argc, char* argv[]){
         // copy matrix to device
         cudaMemcpy(dev_A, A, N * sizeof(int), cudaMemcpyHostToDevice);
 
+        // Create CUDA events to use for timing
+	    cudaEvent_t start, stop;
+	    cudaEventCreate(&start);
+	    cudaEventCreate(&stop);
+
         // start CUDA timer 
+        cudaEventRecord(start);
             
         // run kernel
         if (strategy == 0){  // Simple kernel
@@ -141,6 +147,14 @@ int main(int argc, char* argv[]){
         cudaDeviceSynchronize();
 
         // stop CUDA timer
+	    cudaEventRecord(stop);
+	    cudaEventSynchronize(stop); 
+
+	    // Calculate elapsed time
+	    float milliseconds = 0;
+	    cudaEventElapsedTime(&milliseconds, start, stop);
+
+	    printf("Kernel Time: %f ms\n", milliseconds);
 
         // copy back - only necessary for simple kernel
         cudaMemcpy(A_T, dev_A_T, N * sizeof(int), cudaMemcpyDeviceToHost);
@@ -152,6 +166,10 @@ int main(int argc, char* argv[]){
             }
             cout << endl;
         }
+
+        // Free timer events
+	    cudaEventDestroy(start);
+	    cudaEventDestroy(stop);
 
         // free memory on device
         cudaFree(dev_A);

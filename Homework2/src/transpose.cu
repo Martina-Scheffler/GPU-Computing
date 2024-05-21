@@ -9,8 +9,8 @@
 
 using namespace std;
 
-#define TILE_DIMENSION 4
-#define BLOCK_ROWS 1
+#define TILE_DIMENSION 32
+#define BLOCK_ROWS 8
 
 int strategy = 0;
 
@@ -94,13 +94,13 @@ int main(int argc, char* argv[]){
 		// call matrix generation with command line argument and receive matrix back
 		int* A = generate_continous_matrix(size);
 
-        for (int i=0; i<size; i++){
-            for (int j=0; j<size; j++){
-                cout << A[i * size + j] << "\t";
-            }
-            cout << endl;
-        }
-        cout << endl;
+        // for (int i=0; i<size; i++){
+        //     for (int j=0; j<size; j++){
+        //         cout << A[i * size + j] << "\t";
+        //     }
+        //     cout << endl;
+        // }
+        // cout << endl;
 
         // allocate memory on host
         int* A_T = (int*) malloc(N * sizeof(int));
@@ -159,13 +159,13 @@ int main(int argc, char* argv[]){
         // copy back - only necessary for simple kernel
         cudaMemcpy(A_T, dev_A_T, N * sizeof(int), cudaMemcpyDeviceToHost);
         
-        // display result
-        for (int i=0; i<size; i++){
-            for (int j=0; j<size; j++){
-                cout << A_T[i*size + j] << "\t";
-            }
-            cout << endl;
-        }
+        // // display result
+        // for (int i=0; i<size; i++){
+        //     for (int j=0; j<size; j++){
+        //         cout << A_T[i*size + j] << "\t";
+        //     }
+        //     cout << endl;
+        // }
 
         // Free timer events
 	    cudaEventDestroy(start);

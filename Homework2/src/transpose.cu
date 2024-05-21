@@ -129,7 +129,7 @@ int main(int argc, char* argv[]){
         // display result
         for (int i=0; i<size; i++){
             for (int j=0; j<size; j++){
-                cout << A_T[i*size + j]
+                cout << A_T[i*size + j];
             }
             cout << endl;
         }

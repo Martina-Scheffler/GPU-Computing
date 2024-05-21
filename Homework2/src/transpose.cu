@@ -35,7 +35,10 @@ __global__ void transposeCoalesced(int *A, int *A_T){
     printf("Tile Dimension: %d\n", TILE_DIMENSION);
     printf("Block Rows: %d\n", BLOCK_ROWS);
 
-    for (int i=0; i<(int) TILE_DIMENSION; i+= (int) BLOCK_ROWS){
+    int td = TILE_DIMENSION;
+    int br = BLOCK_ROWS;
+
+    for (int i=0; i<td; i+=br){
         tile[threadIdx.y + i][threadIdx.x] = A[(y + i) * width + x];
         printf("Read value: %d", A[(y + i) * width + x]);
     }

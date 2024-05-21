@@ -81,8 +81,9 @@ int main(int argc, char* argv[]){
 	if (argc < 2){
 		throw runtime_error("Please enter an integer N as argument to generate a matrix of size 2^N x 2^N.");
 	}
-    if (argc == 3){
+    if (argc >= 3){
         strategy = atoi(argv[2]);  // Strategy: 0 = Simple, 1 = Coalesced, 2 = Diagonal
+        printf("Strategy %d", strategy);
     }
     
     if (atoi(argv[1]) == 0){

@@ -9,6 +9,8 @@
 
 using namespace std;
 
+#define NUM_REPS 10
+
 int strategy = 0;
 int tileDimension = 4;
 int blockRows = 1;
@@ -94,7 +96,104 @@ int main(int argc, char* argv[]){
     }
     
     if (atoi(argv[1]) == 0){
-        // use zero for analyzing the effective bandwidth using different TILE_DIMENSION and BLOCK_ROWS values
+        // use zero for analyzing the effective bandwidth with different matrix sizes and parameters
+        for (int i=2; i<=pow(2, 12); i*=2){  // from 2^1 to 2^12
+            // matrix dimension
+            int size = i; 
+            int N = size * size;
+
+            // loop over all possible values of tile dimension and block rows
+            for (int j=2; j<=i; j*=2){  // 2 to i/matrix dimension
+                tileDimension = j;
+
+                for (int k=1; k<=j; k*=2){  // 1 to j/tile dimension
+                    blockRows = k;
+
+                    // generate matrix
+                    int* A = generate_random_matrix(size);
+
+                    // allocate memory on host
+                    int* A_T = (int*) malloc(N * sizeof(int));
+
+                    // determine kernel dimensions
+                    dim3 nBlocks (size / tileDimension, size / tileDimension, 1);
+                    dim3 nThreads (tileDimension, blockRows, 1);
+
+                    // allocate memory on device
+                    int *dev_A, *dev_A_T;
+
+                    cudaMalloc(&dev_A, N * sizeof(int));
+                    cudaMalloc(&dev_A_T, N * sizeof(int));
+
+                    // copy matrix to device
+                    cudaMemcpy(dev_A, A, N * sizeof(int), cudaMemcpyHostToDevice);
+
+                    // Create CUDA events to use for timing
+                    cudaEvent_t start, stop;
+                    cudaEventCreate(&start);
+                    cudaEventCreate(&stop);
+
+                    // warmup to avoid timing startup TODO: is this necessary?
+                    warm_up_gpu<<<nBlocks, nThreads>>>();
+
+                    // start CUDA timer 
+                    cudaEventRecord(start);
+                        
+                    // run kernel NUM_REPS times
+                    if (strategy == 0){  // Simple kernel
+                        for (int l=0; l<NUM_REPS; l++){
+                            transposeSimple<<<nBlocks, nThreads>>>(dev_A, dev_A_T, tileDimension, blockRows);
+                        } 
+                    }
+                    else if (strategy == 1){  // Coalesced kernel
+                        for (int l=0; l<NUM_REPS; l++){
+                            transposeCoalesced<<<nBlocks, nThreads>>>(dev_A, dev_A_T, tileDimension, blockRows);
+                        }
+                    }
+                    else if (strategy == 2){  // Diagonal kernel
+                        for (int l=0; l<NUM_REPS; l++){
+                            transposeDiagonal<<<nBlocks, nThreads>>>(dev_A, dev_A_T, tileDimension, blockRows);
+                        }
+                    }
+                    else {
+                        throw runtime_error("Please choose 0, 1 or 2 for the strategy.");
+                    }
+
+                    // synchronize
+                    cudaDeviceSynchronize();
+
+                    // stop CUDA timer
+                    cudaEventRecord(stop);
+                    cudaEventSynchronize(stop); 
+
+                    // Calculate elapsed time
+                    float milliseconds = 0;
+                    cudaEventElapsedTime(&milliseconds, start, stop);
+
+                    // divide by NUM_REPS to get mean
+                    milliseconds /= NUM_REPS;
+
+                    // Write time to file TODO
+
+                    // copy back to host
+                    cudaMemcpy(A_T, dev_A_T, N * sizeof(int), cudaMemcpyDeviceToHost);
+                    
+                    // Free timer events
+                    cudaEventDestroy(start);
+                    cudaEventDestroy(stop);
+
+                    // free memory on device
+                    cudaFree(dev_A);
+                    cudaFree(dev_A_T);
+
+                    // free memory on host
+                    free(A);
+                    free(A_T);
+
+                    return 0;
+                }
+            }
+        }
 
     }
     else {

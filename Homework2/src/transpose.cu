@@ -35,7 +35,7 @@ __global__ void transposeSimple(int* A, int* A_T, int tileDimension, int blockRo
 }
 
 __global__ void transposeCoalesced(int *A, int *A_T, int tileDimension, int blockRows){
-    __shared__ int tile[];
+    extern __shared__ int tile[];
 
     //__shared__ int tile[tileDimension][tileDimension + 1];  // +1 in y to avoid bank conflicts
 
@@ -58,7 +58,7 @@ __global__ void transposeCoalesced(int *A, int *A_T, int tileDimension, int bloc
 }
 
 __global__ void transposeDiagonal(int *A, int *A_T, int tileDimension, int blockRows){
-    __shared__ int tile[];
+    extern __shared__ int tile[];
     //__shared__ int tile[tileDimension][tileDimension + 1];
 
     // diagonal reordering

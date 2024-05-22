@@ -21,4 +21,4 @@ make
 rm ./bin/*.o
 
 # run
-srun ./bin/transpose 2 0 4 1 
+srun ./bin/transpose 12 0 4096 4096

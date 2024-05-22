@@ -116,7 +116,10 @@ int main(int argc, char* argv[]){
             for (int j=2; j<=i; j*=2){  // 2 to i/matrix dimension
                 tileDimension = j;
 
-                for (int k=1; k<=pow(2, 10); k*=2){  // 1 to j/tile dimension
+                for (int k=1; k<j; k*=2){  // 1 to j/tile dimension
+                    if k > pow(2, 10){  // maximum allowed number
+                        break;
+                    }
                     blockRows = k;
 
                     // generate matrix

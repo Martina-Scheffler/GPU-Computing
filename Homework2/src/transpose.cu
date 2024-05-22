@@ -10,7 +10,7 @@
 
 using namespace std;
 
-#define NUM_REPS 10
+#define NUM_REPS 1
 
 int strategy = 0;
 int tileDimension = 4;

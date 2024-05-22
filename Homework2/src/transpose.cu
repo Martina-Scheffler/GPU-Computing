@@ -35,14 +35,16 @@ __global__ void transposeSimple(int* A, int* A_T, int tileDimension, int blockRo
 }
 
 __global__ void transposeCoalesced(int *A, int *A_T, int tileDimension, int blockRows){
-    __shared__ int tile[tileDimension][tileDimension + 1];  // +1 in y to avoid bank conflicts
+    __shared__ int tile[];
+
+    //__shared__ int tile[tileDimension][tileDimension + 1];  // +1 in y to avoid bank conflicts
 
     int x = blockIdx.x * tileDimension + threadIdx.x;
     int y = blockIdx.y * tileDimension + threadIdx.y;
     int width = gridDim.x * tileDimension;
 
     for (int i=0; i<tileDimension; i+=blockRows){
-        tile[threadIdx.y + i][threadIdx.x] = A[(y + i) * width + x];
+        tile[(threadIdx.y + i) * (tileDimension + 1) + threadIdx.x] = A[(y + i) * width + x];
     }
         
     __syncthreads();
@@ -51,12 +53,13 @@ __global__ void transposeCoalesced(int *A, int *A_T, int tileDimension, int bloc
     y = blockIdx.x * tileDimension + threadIdx.y;
 
     for (int i=0; i<tileDimension; i+=blockRows){
-        A_T[(y + i) * width + x] = tile[threadIdx.x][threadIdx.y + i];
+        A_T[(y + i) * width + x] = tile[threadIdx.x * (tileDimension + 1) + (threadIdx.y + i)];
     }
 }
 
 __global__ void transposeDiagonal(int *A, int *A_T, int tileDimension, int blockRows){
-    __shared__ int tile[tileDimension][tileDimension + 1];
+    __shared__ int tile[];
+    //__shared__ int tile[tileDimension][tileDimension + 1];
 
     // diagonal reordering
     int blockIdx_y = blockIdx.x;
@@ -68,7 +71,7 @@ __global__ void transposeDiagonal(int *A, int *A_T, int tileDimension, int block
 
 
     for (int i=0; i<tileDimension; i+=blockRows){
-        tile[threadIdx.y + i][threadIdx.x] = A[(y + i) * width + x];
+        tile[(threadIdx.y + i) * (tileDimension + 1) + threadIdx.x] = A[(y + i) * width + x];
     }
         
     __syncthreads();
@@ -77,7 +80,7 @@ __global__ void transposeDiagonal(int *A, int *A_T, int tileDimension, int block
     y = blockIdx_x * tileDimension + threadIdx.y;
 
     for (int i=0; i<tileDimension; i+=blockRows){
-        A_T[(y + i) * width + x] = tile[threadIdx.x][threadIdx.y + i];
+        A_T[(y + i) * width + x] = tile[threadIdx.x * (tileDimension + 1) + threadIdx.y + i];
     }
 }
 
@@ -154,12 +157,12 @@ int main(int argc, char* argv[]){
                     }
                     else if (strategy == 1){  // Coalesced kernel
                         for (int l=0; l<NUM_REPS; l++){
-                            transposeCoalesced<<<nBlocks, nThreads>>>(dev_A, dev_A_T, tileDimension, blockRows);
+                            transposeCoalesced<<<nBlocks, nThreads, tileDimension * (tileDimension + 1) * sizeof(int)>>>(dev_A, dev_A_T, tileDimension, blockRows);
                         }
                     }
                     else if (strategy == 2){  // Diagonal kernel
                         for (int l=0; l<NUM_REPS; l++){
-                            transposeDiagonal<<<nBlocks, nThreads>>>(dev_A, dev_A_T, tileDimension, blockRows);
+                            transposeDiagonal<<<nBlocks, nThreads, tileDimension * (tileDimension + 1) * sizeof(int)>>>(dev_A, dev_A_T, tileDimension, blockRows);
                         }
                     }
                     else {
@@ -260,10 +263,10 @@ int main(int argc, char* argv[]){
             transposeSimple<<<nBlocks, nThreads>>>(dev_A, dev_A_T, tileDimension, blockRows);
         }
         else if (strategy == 1){  // Coalesced kernel
-            transposeCoalesced<<<nBlocks, nThreads>>>(dev_A, dev_A_T, tileDimension, blockRows);
+            transposeCoalesced<<<nBlocks, nThreads, tileDimension * (tileDimension + 1) * sizeof(int)>>>(dev_A, dev_A_T, tileDimension, blockRows);
         }
         else if (strategy == 2){  // Diagonal kernel
-            transposeDiagonal<<<nBlocks, nThreads>>>(dev_A, dev_A_T, tileDimension, blockRows);
+            transposeDiagonal<<<nBlocks, nThreads, tileDimension * (tileDimension + 1) * sizeof(int)>>>(dev_A, dev_A_T, tileDimension, blockRows);
         }
         else {
             throw runtime_error("Please choose 0, 1 or 2 for the strategy.");

@@ -147,7 +147,7 @@ int main(int argc, char* argv[]){
                     warm_up_gpu<<<nBlocks, nThreads>>>();
 
                     // start CUDA timer 
-                    cudaEventRecord(start);
+                    cudaEventRecord(start, 0);
                         
                     // run kernel NUM_REPS times
                     if (strategy == 0){  // Simple kernel
@@ -173,18 +173,18 @@ int main(int argc, char* argv[]){
                     cudaDeviceSynchronize();
 
                     // stop CUDA timer
-                    cudaEventRecord(stop);
+                    cudaEventRecord(stop, 0);
                     cudaEventSynchronize(stop); 
 
                     // Calculate elapsed time
-                    float milliseconds = 0;
-                    cudaEventElapsedTime(&milliseconds, start, stop);
+                    float seconds = 0;
+                    cudaEventElapsedTime(&seconds, start, stop);
 
                     // divide by NUM_REPS to get mean
-                    milliseconds /= NUM_REPS;
+                    seconds /= NUM_REPS;
 
                     // save execution time to file
-				    myfile << milliseconds << ";";;
+				    myfile << seconds << ";";;
 
                     // copy back to host
                     cudaMemcpy(A_T, dev_A_T, N * sizeof(int), cudaMemcpyDeviceToHost);
@@ -207,7 +207,7 @@ int main(int argc, char* argv[]){
         }
         // close file
 		myfile.close();
-        
+
         return 0;
 
     }
@@ -280,10 +280,10 @@ int main(int argc, char* argv[]){
 	    cudaEventSynchronize(stop); 
 
 	    // Calculate elapsed time
-	    float milliseconds = 0;
-	    cudaEventElapsedTime(&milliseconds, start, stop);
+	    float seconds = 0;
+	    cudaEventElapsedTime(&seconds, start, stop);
 
-	    printf("Kernel Time: %f ms\n", milliseconds);
+	    printf("Kernel Time: %f s\n", seconds);
 
         // copy back to host
         cudaMemcpy(A_T, dev_A_T, N * sizeof(int), cudaMemcpyDeviceToHost);

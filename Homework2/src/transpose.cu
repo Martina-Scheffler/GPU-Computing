@@ -25,7 +25,7 @@ __global__ void warm_up_gpu(){
 }
 
 __global__ void transposeSimple(int* A, int* A_T, int tileDimension, int blockRows){
-	int x = blockIdx.x *  + threadIdx.x;
+	int x = blockIdx.x * tileDimension + threadIdx.x;
 	int y = blockIdx.y * tileDimension + threadIdx.y;
     int width = gridDim.x * tileDimension;
 

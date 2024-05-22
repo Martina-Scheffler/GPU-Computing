@@ -83,3 +83,24 @@ git clone https://github.com/Martina-Scheffler/GPU-Computing.git
 ```bash
 cd GPU-Computing/Homework2/
 ```
+
+### Run single transpose
+In `transpose_sbatch.sh`, change `srun ./bin/transpose <power> <strategy> <tile dimension> <block rows>` to fit your 
+desired values.
+For example `srun ./bin/transpose 2 <strategy> 4 1` will transpose a 2^2 x 2^2 matrix using tile dimension 4 and block rows 1.
+
+For strategy, the options are:
+- 0 = simple kernel
+- 1 = coalesced kernel
+- 2 = diagonal kernel
+
+Run:
+```batch
+sbatch transpose_sbatch.sh
+```
+
+### Analyzing parameters for multiple matrix dimensions
+Run:
+```batch
+sbatch analyze_bandwidth_sbatch.sh
+```

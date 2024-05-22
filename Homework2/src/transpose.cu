@@ -177,14 +177,14 @@ int main(int argc, char* argv[]){
                     cudaEventSynchronize(stop); 
 
                     // Calculate elapsed time
-                    float seconds = 0;
-                    cudaEventElapsedTime(&seconds, start, stop);
+                    float milliseconds = 0;
+                    cudaEventElapsedTime(&milliseconds, start, stop);
 
                     // divide by NUM_REPS to get mean
-                    seconds /= NUM_REPS;
+                    milliseconds /= NUM_REPS;
 
                     // save execution time to file
-				    myfile << seconds << ";";;
+				    myfile << milliseconds << ";";;
 
                     // copy back to host
                     cudaMemcpy(A_T, dev_A_T, N * sizeof(int), cudaMemcpyDeviceToHost);
@@ -280,10 +280,10 @@ int main(int argc, char* argv[]){
 	    cudaEventSynchronize(stop); 
 
 	    // Calculate elapsed time
-	    float seconds = 0;
-	    cudaEventElapsedTime(&seconds, start, stop);
+	    float milliseconds = 0;
+	    cudaEventElapsedTime(&milliseconds, start, stop);
 
-	    printf("Kernel Time: %f s\n", seconds);
+	    printf("Kernel Time: %f ms\n", milliseconds);
 
         // copy back to host
         cudaMemcpy(A_T, dev_A_T, N * sizeof(int), cudaMemcpyDeviceToHost);

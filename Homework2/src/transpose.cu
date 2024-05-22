@@ -200,8 +200,6 @@ int main(int argc, char* argv[]){
                     // free memory on host
                     free(A);
                     free(A_T);
-
-                    return 0;
                 }
                 myfile << "\n";  // new line in csv file
             }
@@ -209,6 +207,8 @@ int main(int argc, char* argv[]){
         }
         // close file
 		myfile.close();
+        
+        return 0;
 
     }
     else {

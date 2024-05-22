@@ -117,7 +117,7 @@ int main(int argc, char* argv[]){
                 tileDimension = j;
 
                 for (int k=1; k<j; k*=2){  // 1 to j/tile dimension
-                    if k > pow(2, 10){  // maximum allowed number
+                    if (k > pow(2, 10)){  // maximum allowed number
                         break;
                     }
                     blockRows = k;

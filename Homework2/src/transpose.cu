@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cuda_runtime.h>
 #include <fstream>
+#include "cublas_v2.h"
 
 
 #include "../include/matrix_generation.h"
@@ -82,6 +83,26 @@ __global__ void transposeDiagonal(int *A, int *A_T, int tileDimension, int block
     for (int i=0; i<tileDimension; i+=blockRows){
         A_T[(y + i) * width + x] = tile[threadIdx.x * (tileDimension + 1) + threadIdx.y + i];
     }
+}
+
+bool checkCorrectness(int* A, int* A_T, int size){
+    float const alpha(1.0);
+    float const beta(0.0);
+    cublasHandle_t handle;
+    int* res;
+
+    cublasCreate(&handle);
+    cublasSgeam(handle, CUBLAS_OP_T, CUBLAS_OP_N, size, size, &alpha, A, n, &beta, A, size, res, size);
+    cublasDestroy(handle);
+
+    for (int i=0; i<size; i++){
+        for (int j=0; j<size; j++){
+            if (A_T[i * size + j] != res[i * size + j]) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 
@@ -181,19 +202,26 @@ int main(int argc, char* argv[]){
                     cudaEventRecord(stop, 0);
                     cudaEventSynchronize(stop); 
 
-                    // Calculate elapsed time
-                    float milliseconds = 0;
-                    cudaEventElapsedTime(&milliseconds, start, stop);
-
-                    // divide by NUM_REPS to get mean
-                    milliseconds /= NUM_REPS;
-
-                    // save execution time to file
-				    myfile << milliseconds << ";";;
-
                     // copy back to host
                     cudaMemcpy(A_T, dev_A_T, N * sizeof(int), cudaMemcpyDeviceToHost);
-                    
+
+                    // check correctness 
+                    if (checkCorrectness(A, A_T, size)){
+                        // Calculate elapsed time
+                        float milliseconds = 0;
+                        cudaEventElapsedTime(&milliseconds, start, stop);
+
+                        // divide by NUM_REPS to get mean
+                        milliseconds /= NUM_REPS;
+
+                        // save execution time to file
+                        myfile << milliseconds << ";";;
+                    }
+                    else {
+                        // skip entry in file
+                        myfile << ";";;
+                    }
+
                     // Free timer events
                     cudaEventDestroy(start);
                     cudaEventDestroy(stop);
@@ -292,6 +320,11 @@ int main(int argc, char* argv[]){
 
         // copy back to host
         cudaMemcpy(A_T, dev_A_T, N * sizeof(int), cudaMemcpyDeviceToHost);
+
+        // check correctness
+        if (!checkCorrectness(A, A_T, size)){
+            printf("Incorrect Result!!!");
+        }
         
         // display result
         for (int i=0; i<size; i++){

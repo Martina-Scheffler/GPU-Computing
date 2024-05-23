@@ -4,7 +4,7 @@ LIBS=-L${LIB_HOME}/lib64
 OPT = -std=c++14 -O2
 
 NVCC = nvcc
-NVCC_FLAGS = 
+NVCC_FLAGS = -lcublas
 NVCC_LIBS = 
 TARGETDIR := bin
 SRCDIR := src

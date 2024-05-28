@@ -89,10 +89,10 @@ bool checkCorrectness(int* A, int* A_T, int size){
     float const alpha(1.0);
     float const beta(0.0);
     cublasHandle_t handle;
-    int* res;
+    float* res;
 
     cublasCreate(&handle);
-    cublasSgeam(handle, CUBLAS_OP_T, CUBLAS_OP_N, size, size, &alpha, A, n, &beta, A, size, res, size);
+    cublasSgeam(handle, CUBLAS_OP_T, CUBLAS_OP_N, size, size, &alpha, (float*)A, size, &beta,(float*) A, size, res, size);
     cublasDestroy(handle);
 
     for (int i=0; i<size; i++){

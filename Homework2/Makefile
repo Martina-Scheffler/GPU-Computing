@@ -25,7 +25,7 @@ $(TARGETDIR)/matrix_generation.o: $(INCLUDE_CPP) $(INCLUDE_HEADERS)
 	$(CC) -o $@ -c $< $(LIBS) $(OPT)
 
 $(TARGETDIR)/transpose:
-	$(NVCC) -o $@ $(TARGETDIR)/transpose.o $(TARGETDIR)/matrix_generation.o -lcudart -lcuda 
+	$(NVCC) -o $@ $(TARGETDIR)/transpose.o $(TARGETDIR)/matrix_generation.o -lcudart -lcuda  -lcublas
 
 
 clean:

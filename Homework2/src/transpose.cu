@@ -90,6 +90,7 @@ bool checkCorrectness(int* A, int* A_T, int size){
     float const beta(0.0);
     cublasHandle_t handle;
     float* res;
+    memcpy(res, (float*) A, sizeof(float) * size * size);
 
     // display cublas result
     printf("A\n");

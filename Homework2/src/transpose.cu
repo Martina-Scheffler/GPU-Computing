@@ -92,12 +92,14 @@ bool checkCorrectness(int* A, int* A_T, int size){
     float* res;
 
     // display cublas result
+    printf("A\n");
     for (int i=0; i<size; i++){
         for (int j=0; j<size; j++){
                 cout << A[i * size + j] << "\t";
         }
         cout << endl;
     }
+    printf("A_T\n");
     // display cublas result
     for (int i=0; i<size; i++){
         for (int j=0; j<size; j++){
@@ -112,6 +114,7 @@ bool checkCorrectness(int* A, int* A_T, int size){
 
     bool correct = true;
 
+    printf("Cublas\n");
     // display cublas result
     for (int i=0; i<size; i++){
         for (int j=0; j<size; j++){
@@ -120,6 +123,7 @@ bool checkCorrectness(int* A, int* A_T, int size){
         cout << endl;
     }
 
+    printf("Correctness\n");
     for (int i=0; i<size; i++){
         for (int j=0; j<size; j++){
             if (A_T[i * size + j] != (int) res[i * size + j]) {

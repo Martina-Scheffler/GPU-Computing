@@ -99,19 +99,19 @@ bool checkCorrectness(int* A, int* A_T, int size){
         }
     }
 
-    // memcpy(res, A_copy, sizeof(float) * size * size);
+    memcpy(res, A_copy, sizeof(float) * size * size);
 
-    // // display cublas result
-    // printf("res\n");
-    // for (int i=0; i<size; i++){
-    //     for (int j=0; j<size; j++){
-    //             cout << res[i * size + j] << "\t";
-    //     }
-    //     cout << endl;
-    // }
+    // display cublas result
+    printf("res\n");
+    for (int i=0; i<size; i++){
+        for (int j=0; j<size; j++){
+                cout << res[i * size + j] << "\t";
+        }
+        cout << endl;
+    }
 
     cublasCreate(&handle);
-    cublasSgeam(handle, CUBLAS_OP_T, CUBLAS_OP_N, size, size, &alpha, A_copy, size, &beta, A_copy, size, A, size);
+    cublasSgeam(handle, CUBLAS_OP_T, CUBLAS_OP_N, size, size, &alpha, A_copy, size, &beta, A_copy, size, res, size);
     cublasDestroy(handle);
 
     bool correct = true;
@@ -120,7 +120,7 @@ bool checkCorrectness(int* A, int* A_T, int size){
     // display cublas result
     for (int i=0; i<size; i++){
         for (int j=0; j<size; j++){
-                cout << A[i * size + j] << "\t";
+                cout << res[i * size + j] << "\t";
         }
         cout << endl;
     }

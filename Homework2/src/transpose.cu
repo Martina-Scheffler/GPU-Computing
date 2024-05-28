@@ -95,15 +95,17 @@ bool checkCorrectness(int* A, int* A_T, int size){
     cublasSgeam(handle, CUBLAS_OP_T, CUBLAS_OP_N, size, size, &alpha, (float*)A, size, &beta,(float*) A, size, res, size);
     cublasDestroy(handle);
 
+    bool correct = true;
+
     for (int i=0; i<size; i++){
         for (int j=0; j<size; j++){
             if (A_T[i * size + j] != (int) res[i * size + j]) {
-                printf("%d != %d", A_T[i * size + j], res[i * size + j]);
-                return false;
+                printf("%d != %d\n", A_T[i * size + j], res[i * size + j]);
+                correct = false;
             }
         }
     }
-    return true;
+    return correct;
 }
 
 

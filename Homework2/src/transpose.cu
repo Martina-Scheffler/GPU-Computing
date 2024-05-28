@@ -91,19 +91,34 @@ bool checkCorrectness(int* A, int* A_T, int size){
     cublasHandle_t handle;
     float* res;
 
+    // display cublas result
+    for (int i=0; i<size; i++){
+        for (int j=0; j<size; j++){
+                cout << A[i * size + j] << "\t";
+        }
+        cout << endl;
+    }
+    // display cublas result
+    for (int i=0; i<size; i++){
+        for (int j=0; j<size; j++){
+                cout << A_T[i * size + j] << "\t";
+        }
+        cout << endl;
+    }
+
     cublasCreate(&handle);
-    cublasSgeam(handle, CUBLAS_OP_T, CUBLAS_OP_N, size, size, &alpha, (float*)A, size, &beta,(float*) A, size, res, size);
+    cublasSgeam(handle, CUBLAS_OP_T, CUBLAS_OP_N, size, size, &alpha, (float*) A, size, &beta, (float*) A, size, res, size);
     cublasDestroy(handle);
 
     bool correct = true;
 
     // display cublas result
-        for (int i=0; i<size; i++){
-            for (int j=0; j<size; j++){
+    for (int i=0; i<size; i++){
+        for (int j=0; j<size; j++){
                 cout << res[i * size + j] << "\t";
-            }
-            cout << endl;
         }
+        cout << endl;
+    }
 
     for (int i=0; i<size; i++){
         for (int j=0; j<size; j++){

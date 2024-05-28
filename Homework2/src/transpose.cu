@@ -137,7 +137,7 @@ bool checkCorrectness(int* A, int* A_T, int size){
         }
         printf("\n");
     }
-    / display cublas result
+   
     for (int i=0; i<size; i++){
         for (int j=0; j<size; j++){
             printf("%f\t", dev_A_check[i * size + j]);

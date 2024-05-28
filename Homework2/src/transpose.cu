@@ -363,7 +363,7 @@ int main(int argc, char* argv[]){
         cudaMemcpy(A_T, dev_A_T, N * sizeof(int), cudaMemcpyDeviceToHost);
 
         // check correctness
-        if (!checkCorrectness(A, A_T, size)){
+        if (!checkCorrectness(dev_A, dev_A_T, size)){
             printf("Incorrect Result!!!");
         }
         

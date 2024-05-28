@@ -90,7 +90,16 @@ bool checkCorrectness(int* A, int* A_T, int size){
     float const beta(0.0);
     cublasHandle_t handle;
     float* res = (float*) malloc(size * size * sizeof(float));
-    memcpy(res, (float*) A, sizeof(float) * size * size);
+    float* A_copy = (float*) malloc(size * size * sizeof(float));
+
+    // copy values to float array
+    for (int i=0; i<size; i++){
+        for (int j=0; j<size; j++){
+                A_copy[i * size + j] = (float) A[i * size + j];
+        }
+    }
+
+    memcpy(res, A_copy, sizeof(float) * size * size);
 
     // display cublas result
     printf("res\n");
@@ -102,7 +111,7 @@ bool checkCorrectness(int* A, int* A_T, int size){
     }
 
     cublasCreate(&handle);
-    cublasSgeam(handle, CUBLAS_OP_T, CUBLAS_OP_N, size, size, &alpha, (float*) A, size, &beta, (float*) A, size, res, size);
+    cublasSgeam(handle, CUBLAS_OP_T, CUBLAS_OP_N, size, size, &alpha, A_copy, size, &beta, A_copy, size, res, size);
     cublasDestroy(handle);
 
     bool correct = true;

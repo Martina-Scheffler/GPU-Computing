@@ -359,7 +359,7 @@ int main(int argc, char* argv[]){
 
         // check correctness
         if (!checkCorrectness(A, A_T, size)){
-            printf("Incorrect Result!!!");
+            printf("Incorrect Result!!!\n");
         }
         
         // display result

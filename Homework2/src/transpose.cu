@@ -93,18 +93,10 @@ bool checkCorrectness(int* A, int* A_T, int size){
     memcpy(res, (float*) A, sizeof(float) * size * size);
 
     // display cublas result
-    printf("A\n");
+    printf("res\n");
     for (int i=0; i<size; i++){
         for (int j=0; j<size; j++){
-                cout << A[i * size + j] << "\t";
-        }
-        cout << endl;
-    }
-    printf("A_T\n");
-    // display cublas result
-    for (int i=0; i<size; i++){
-        for (int j=0; j<size; j++){
-                cout << A_T[i * size + j] << "\t";
+                cout << res[i * size + j] << "\t";
         }
         cout << endl;
     }

@@ -88,7 +88,7 @@ __global__ void transposeDiagonal(int *A, int *A_T, int tileDimension, int block
 bool checkCorrectness(int* A, int* A_T, int size){
     // allocate memory on host
     float* res = (float*) malloc(size * size * sizeof(float));
-
+    float* A_copy = (float*) malloc(size * size * sizeof(float));
 
     // allocate memory on device
     float *dev_A_check, *dev_A_T_check;
@@ -96,7 +96,6 @@ bool checkCorrectness(int* A, int* A_T, int size){
     cudaMalloc(&dev_A_T_check, size * size * sizeof(float));
 
     // copy int array to float array
-    float* A_copy = (float*) malloc(size * size * sizeof(float));
     for (int i=0; i<size; i++){
         for (int j=0; j<size; j++){
                 A_copy[i * size + j] = (float) A[i * size + j];
@@ -110,26 +109,6 @@ bool checkCorrectness(int* A, int* A_T, int size){
     float const alpha(1.0);
     float const beta(0.0);
     cublasHandle_t handle;
-    // float* res = (float*) malloc(size * size * sizeof(float));
-    // float* A_copy = (float*) malloc(size * size * sizeof(float));
-
-    // // copy values to float array
-    // for (int i=0; i<size; i++){
-    //     for (int j=0; j<size; j++){
-    //             A_copy[i * size + j] = (float) A[i * size + j];
-    //     }
-    // }
-
-    // memcpy(res, A_copy, sizeof(float) * size * size);
-
-    // // display cublas result
-    // printf("res\n");
-    // for (int i=0; i<size; i++){
-    //     for (int j=0; j<size; j++){
-    //             cout << res[i * size + j] << "\t";
-    //     }
-    //     cout << endl;
-    // }
 
     cublasCreate(&handle);
     cublasSgeam(handle, CUBLAS_OP_T, CUBLAS_OP_N, size, size, &alpha, dev_A_check, size, &beta, dev_A_check, size, dev_A_T_check, size);
@@ -141,25 +120,6 @@ bool checkCorrectness(int* A, int* A_T, int size){
     // check correctness
     bool correct = true;
 
-    printf("Cublas\n");
-    // display cublas result
-    for (int i=0; i<size; i++){
-        for (int j=0; j<size; j++){
-                cout << res[i * size + j] << "\t";
-        }
-        cout << endl;
-    }
-
-    // printf("A_copy\n");
-    // // display cublas result
-    // for (int i=0; i<size; i++){
-    //     for (int j=0; j<size; j++){
-    //             cout << A_copy[i * size + j] << "\t";
-    //     }
-    //     cout << endl;
-    // }
-
-    printf("Correctness\n");
     for (int i=0; i<size; i++){
         for (int j=0; j<size; j++){
             if (A_T[i * size + j] != (int) res[i * size + j]) {
@@ -168,6 +128,15 @@ bool checkCorrectness(int* A, int* A_T, int size){
             }
         }
     }
+
+    // free memory on device
+    cudaFree(dev_A_check);
+    cudaFree(dev_A_T_check);
+
+    // free memory on host
+    free(A_copy);
+    free(res);
+
     return correct;
 }
 

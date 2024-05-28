@@ -104,3 +104,11 @@ Run:
 ```batch
 sbatch analyze_bandwidth_sbatch.sh
 ```
+Then, copy to a machine with Python installed
+```batch
+scp name.surname@marzola.disi.unitn.it:~/GPU-Computing/Homework2/output/* .
+```
+Run the python script in the `Homework2` folder
+```batch
+python3 visualization/calculate_bandwidths.py
+```

@@ -104,7 +104,7 @@ bool checkCorrectness(int* A, int* A_T, int size){
     // transpose
     float const alpha(1.0);
     float const beta(0.0);
-    // cublasHandle_t handle;
+    cublasHandle_t handle;
     // float* res = (float*) malloc(size * size * sizeof(float));
     // float* A_copy = (float*) malloc(size * size * sizeof(float));
 
@@ -146,14 +146,14 @@ bool checkCorrectness(int* A, int* A_T, int size){
         cout << endl;
     }
 
-    printf("A_copy\n");
-    // display cublas result
-    for (int i=0; i<size; i++){
-        for (int j=0; j<size; j++){
-                cout << A_copy[i * size + j] << "\t";
-        }
-        cout << endl;
-    }
+    // printf("A_copy\n");
+    // // display cublas result
+    // for (int i=0; i<size; i++){
+    //     for (int j=0; j<size; j++){
+    //             cout << A_copy[i * size + j] << "\t";
+    //     }
+    //     cout << endl;
+    // }
 
     printf("Correctness\n");
     for (int i=0; i<size; i++){

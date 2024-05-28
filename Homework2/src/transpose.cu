@@ -86,33 +86,54 @@ __global__ void transposeDiagonal(int *A, int *A_T, int tileDimension, int block
 }
 
 bool checkCorrectness(int* A, int* A_T, int size){
+    // allocate memory on host
+    float* res = (float*) malloc(size * size * sizeof(float));
+
+
+    // allocate memory on device
+    float *dev_A_check, *dev_A_T_check;
+    cudaMalloc(&dev_A_check, size * size * sizeof(float));
+    cudaMalloc(&dev_A_T_check, size * size * sizeof(float));
+
+    // copy int array to float array
+    //float* A_copy = (float*) malloc(size * size * sizeof(float));
+
+    // copy to device
+    cudaMemcpy(dev_A_check, (float*)A, size * size * sizeof(float), cudaMemcpyHostToDevice);
+
+    // transpose
     float const alpha(1.0);
     float const beta(0.0);
-    cublasHandle_t handle;
-    float* res = (float*) malloc(size * size * sizeof(float));
-    float* A_copy = (float*) malloc(size * size * sizeof(float));
+    // cublasHandle_t handle;
+    // float* res = (float*) malloc(size * size * sizeof(float));
+    // float* A_copy = (float*) malloc(size * size * sizeof(float));
 
-    // copy values to float array
-    for (int i=0; i<size; i++){
-        for (int j=0; j<size; j++){
-                A_copy[i * size + j] = (float) A[i * size + j];
-        }
-    }
+    // // copy values to float array
+    // for (int i=0; i<size; i++){
+    //     for (int j=0; j<size; j++){
+    //             A_copy[i * size + j] = (float) A[i * size + j];
+    //     }
+    // }
 
-    memcpy(res, A_copy, sizeof(float) * size * size);
+    // memcpy(res, A_copy, sizeof(float) * size * size);
 
-    // display cublas result
-    printf("res\n");
-    for (int i=0; i<size; i++){
-        for (int j=0; j<size; j++){
-                cout << res[i * size + j] << "\t";
-        }
-        cout << endl;
-    }
+    // // display cublas result
+    // printf("res\n");
+    // for (int i=0; i<size; i++){
+    //     for (int j=0; j<size; j++){
+    //             cout << res[i * size + j] << "\t";
+    //     }
+    //     cout << endl;
+    // }
 
     cublasCreate(&handle);
-    cublasSgeam(handle, CUBLAS_OP_T, CUBLAS_OP_N, size, size, &alpha, A_copy, size, &beta, A_copy, size, res, size);
+    cublasSgeam(handle, CUBLAS_OP_T, CUBLAS_OP_N, size, size, &alpha, dev_A_check, size, &beta, dev_A_check, size, dev_A_T_check, size);
     cublasDestroy(handle);
+
+    // copy back
+    cudaMemcpy(res, dev_A_T_check, size * size * sizeof(float), cudaMemcpyDeviceToHost);
+
+    // check correctness
 
     bool correct = true;
 
@@ -363,7 +384,7 @@ int main(int argc, char* argv[]){
         cudaMemcpy(A_T, dev_A_T, N * sizeof(int), cudaMemcpyDeviceToHost);
 
         // check correctness
-        if (!checkCorrectness(dev_A, dev_A_T, size)){
+        if (!checkCorrectness(A, A_T, size)){
             printf("Incorrect Result!!!");
         }
         

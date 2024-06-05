@@ -176,10 +176,7 @@ int main(int argc, char* argv[]){
 
                 tileDimension = j;
 
-                for (int k=1; k<=j; k*=2){  // 1 to j/tile dimension
-                    if (k * j > 1024){
-                        continue;
-                    }
+                for (int k=1; (k*tileDimension)<=1024; k*=2){  // 1 to j/tile dimension
                     
                     blockRows = k;
 

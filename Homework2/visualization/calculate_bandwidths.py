@@ -8,42 +8,50 @@ plt.rcParams.update({'font.size': 26})
 def print_bandwidths(df):
     # calculate bandwidth
     tile_dimensions = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]
-    block_rows = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]
+    block_rows = [1, 2, 4, 8, 16, 32]
 
     size = 2
     td_id = 0
-    skipped_already = False
     
     max_bandwidths = {np.log2(size): 0}
     min_execution = {np.log2(size): np.inf}
 
-    for row in range(df.shape[0]):
-        if not skipped_already and np.isnan(df.iat[row, 0]):
+    for row in range(df.shape[0]): # next matrix dimension after a newline
+        if np.isnan(df.iat[row, 0]):
             size *= 2
-            if (size <= 4096):
+            if (size <= 4096):  # max. size is 4096
                 max_bandwidths[np.log2(size)] = 0
                 min_execution[np.log2(size)] = np.inf
-            td_id = 0
-            skipped_already = True
-        elif not np.isnan(df.iat[row, 0]):
-            skipped_already = False
+                
+            td_id = 0  # start anew with TD
+            
+        else:
             print(f'Size: {size}')
+            
             col = 0
-            while col < df.shape[1] and not np.isnan(df.iat[row, col]):
-                # formula here
+            while col < df.shape[1] and not np.isnan(df.iat[row, col]):  # go through existing BR
+                # calculate effective bandwidth
                 effective_bandwidth = ((size * size * 2 * 4) / 10**9) / (df.iat[row, col] * 10**(-3))
+                
+                # find max. effective bandwidth
                 if(effective_bandwidth > max_bandwidths[np.log2(size)]):
                     max_bandwidths[np.log2(size)] = effective_bandwidth
+                
+                # find min. execution time
                 if(df.iat[row, col] < min_execution[np.log2(size)]):
                     min_execution[np.log2(size)] = df.iat[row, col]
+                
+                # display effective bandwidth
                 print(f'TD: {tile_dimensions[td_id]}, BR: {block_rows[col]}, EB: {effective_bandwidth}')
                 col += 1
+                
             print()
             td_id += 1
     
     print(f'Max. EBW: {max_bandwidths}')
     print(f'Min. ET: {min_execution}')
     return max_bandwidths, min_execution
+
 
 # read in data from files
 df_simple = pd.read_csv("output/analyze_bandwidth_0.csv", header=None, sep=';', names=range(11), skip_blank_lines=False)
@@ -56,7 +64,7 @@ max_coalesced, min_coalesced = print_bandwidths(df=df_coalesced)
 max_diagonal, min_diagonal = print_bandwidths(df=df_diagonal)
 
 # plot max. bandwidths
-plt.figure()
+plt.figure(figsize=(20, 10))
 plt.plot(max_simple.keys(), max_simple.values(), color='tab:blue', linewidth=4, label='Simple')
 plt.plot(max_coalesced.keys(), max_coalesced.values(), color='tab:green', linewidth=4, label='Coalesced')
 plt.plot(max_diagonal.keys(), max_diagonal.values(), color='tab:orange', linestyle='--', linewidth=4, label='Diagonal')
@@ -67,10 +75,11 @@ plt.xlabel("Matrix Dimension: $2^{N} \\times 2^{N}$")
 plt.ylabel('Effective Bandwidth [GB/s]')
 plt.legend()
 
+plt.savefig('./visualization/effective_bandwidths.png', dpi=600)
 plt.show()
 
 
-# plot execution time from CPU vs. GPU
+# plot min. execution time from CPU vs. GPU
 cpu_block_df = pd.read_csv("../Homework1/output/block_transpose_03.csv", header=None, sep=';')
 cpu_block_df['mean'] = cpu_block_df.mean(axis=1)
 
@@ -78,7 +87,7 @@ cpu_simple_df = pd.read_csv("../Homework1/output/simple_transpose_03.csv", heade
 cpu_simple_df['mean'] = cpu_simple_df.mean(axis=1)
 
 
-plt.figure()
+plt.figure(figsize=(20, 10))
 
 plt.plot(range(1, 13), cpu_simple_df['mean'], color='tab:green', linestyle='-', linewidth=4, label='CPU Simple')
 plt.plot(range(1, 13), cpu_block_df['mean'], color='tab:orange', linestyle='-', linewidth=4, label='CPU Block')
@@ -91,6 +100,7 @@ plt.xlabel("Matrix Dimension: $2^{N} \\times 2^{N}$")
 plt.ylabel('Execution Time [s]')
 
 plt.grid(True, 'both')
-
 plt.legend()
+
+plt.savefig('./visualization/comparison_gpu_vs_cpu.png', dpi=600)
 plt.show()

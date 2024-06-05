@@ -176,7 +176,10 @@ int main(int argc, char* argv[]){
 
                 tileDimension = j;
 
-                for (int k=1; k*j<=1024; k*=2){  // 1 to k*j=1024 (max. number of threads per block)
+                for (int k=1; k<=j; k*=2){  // 1 to j/tile dimension
+                    if (k * j > 1024){
+                        continue;
+                    }
                     
                     blockRows = k;
 
@@ -255,7 +258,7 @@ int main(int argc, char* argv[]){
                     else {
                         // skip entry in file
                         myfile << ";";;
-                        printf("ERROR | Size: %d, TD: %d, BR: %d \n", size, tileDimension, blockRows);
+                        printf("ERROR | Size: %d, TD: %d, BR: %d \n", size, tileDimension, blockRows)
                     }
 
                     // Free timer events

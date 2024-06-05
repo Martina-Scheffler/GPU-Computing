@@ -170,7 +170,10 @@ int main(int argc, char* argv[]){
 
             // loop over all possible values of tile dimension and block rows
             for (int j=2; j<=i; j*=2){  // 2 to i/matrix dimension
-                if (j > pow(2, 10)){  // maximum allowed number
+                if (strategy == 0 && j > pow(2, 10)){  // maximum allowed number of threads
+                    break;
+                }
+                else if ((strategy == 1 || strategy == 2) && j >= 128){  // limited by size of shared memory
                     break;
                 }
 

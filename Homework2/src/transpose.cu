@@ -257,8 +257,8 @@ int main(int argc, char* argv[]){
                     }
                     else {
                         // skip entry in file
-                        myfile << ";";;
-                        printf("ERROR | Size: %d, TD: %d, BR: %d \n", size, tileDimension, blockRows)
+                        myfile << ";";
+                        printf("ERROR | Size: %d, TD: %d, BR: %d \n", size, tileDimension, blockRows);
                     }
 
                     // Free timer events

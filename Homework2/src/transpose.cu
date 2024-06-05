@@ -38,8 +38,6 @@ __global__ void transposeSimple(int* A, int* A_T, int tileDimension, int blockRo
 __global__ void transposeCoalesced(int *A, int *A_T, int tileDimension, int blockRows){
     extern __shared__ int tile[];
 
-    //__shared__ int tile[tileDimension][tileDimension + 1];  // +1 in y to avoid bank conflicts
-
     int x = blockIdx.x * tileDimension + threadIdx.x;
     int y = blockIdx.y * tileDimension + threadIdx.y;
     int width = gridDim.x * tileDimension;
@@ -60,7 +58,6 @@ __global__ void transposeCoalesced(int *A, int *A_T, int tileDimension, int bloc
 
 __global__ void transposeDiagonal(int *A, int *A_T, int tileDimension, int blockRows){
     extern __shared__ int tile[];
-    //__shared__ int tile[tileDimension][tileDimension + 1];
 
     // diagonal reordering
     int blockIdx_y = blockIdx.x;
@@ -155,9 +152,7 @@ int main(int argc, char* argv[]){
         blockRows = atoi(argv[4]);
     }
     
-    if (atoi(argv[1]) == 0){
-        // use zero for analyzing the effective bandwidth with different matrix sizes and parameters
-
+    if (atoi(argv[1]) == 0){ // use zero for analyzing the effective bandwidth with different matrix sizes and parameters
         // open file to store execution times
 		std::ofstream myfile;
 		string extension = argv[2]; // append extension to save output to the correct file
@@ -169,18 +164,17 @@ int main(int argc, char* argv[]){
             int N = size * size;
 
             // loop over all possible values of tile dimension and block rows
-            for (int j=2; j<=i; j*=2){  // 2 to i/matrix dimension
-                if (strategy == 0 && j > pow(2, 10)){  // maximum allowed number of threads
+            for (int j=2; j<=i; j*=2){  // 2 to i (matrix dimension)
+                if (strategy == 0 && j > pow(2, 10)){  // maximum allowed number of threads limits j
                     break;
                 }
-                else if ((strategy == 1 || strategy == 2) && j >= 128){  // limited by size of shared memory
+                else if ((strategy == 1 || strategy == 2) && j >= 128){  // size of shared memory limits j
                     break;
                 }
 
                 tileDimension = j;
 
-                for (int k=1; k<=j && (k*j<=1024) ; k*=2){  // 1 to j (tile dimension) and max. 1024 threads
-                    
+                for (int k=1; k<=j && (k*j<=1024) ; k*=2){  // 1 to j (tile dimension) and max. 1024 threads overall
                     blockRows = k;
 
                     // generate matrix
@@ -207,7 +201,7 @@ int main(int argc, char* argv[]){
                     cudaEventCreate(&start);
                     cudaEventCreate(&stop);
 
-                    // warmup to avoid timing startup TODO: is this necessary?
+                    // warmup to avoid timing startup 
                     warm_up_gpu<<<nBlocks, nThreads>>>();
 
                     // start CUDA timer 
@@ -292,7 +286,7 @@ int main(int argc, char* argv[]){
 		// call matrix generation with command line argument and receive matrix back
 		int* A = generate_continous_matrix(size);
 
-        // print generated matrix
+        // print generated matrix - comment out for big matrices
         // for (int i=0; i<size; i++){
         //     for (int j=0; j<size; j++){
         //         cout << A[i * size + j] << "\t";
@@ -325,7 +319,7 @@ int main(int argc, char* argv[]){
 	    cudaEventCreate(&start);
 	    cudaEventCreate(&stop);
 
-        // warmup to avoid timing startup TODO: is this necessary?
+        // warmup to avoid timing startup
         warm_up_gpu<<<nBlocks, nThreads>>>();
 
         // start CUDA timer 
@@ -366,7 +360,7 @@ int main(int argc, char* argv[]){
             printf("Incorrect Result!!!\n");
         }
         
-        // display result
+        // display result - comment out for big matrices
         // for (int i=0; i<size; i++){
         //     for (int j=0; j<size; j++){
         //         cout << A_T[i*size + j] << "\t";

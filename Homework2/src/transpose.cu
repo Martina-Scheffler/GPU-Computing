@@ -11,7 +11,7 @@
 
 using namespace std;
 
-#define NUM_REPS 1
+#define NUM_REPS 10
 
 int strategy = 0;
 int tileDimension = 4;
@@ -255,6 +255,7 @@ int main(int argc, char* argv[]){
                     else {
                         // skip entry in file
                         myfile << ";";;
+                        printf("ERROR | Size: %d, TD: %d, BR: %d \n", size, tileDimension, blockRows);
                     }
 
                     // Free timer events

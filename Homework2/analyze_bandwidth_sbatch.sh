@@ -9,7 +9,7 @@
 #SBATCH --cpus-per-task=1
 
 # load cuda
-module load cuda
+module load cuda/12.1
 
 # Clean before build
 rm -rf output/

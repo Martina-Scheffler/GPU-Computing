@@ -97,7 +97,7 @@ plt.plot(min_coalesced.keys(), min_coalesced.values(), color='tab:red', linestyl
 plt.plot(min_diagonal.keys(), min_diagonal.values(), color='tab:purple', linestyle=':', linewidth=4, label='GPU Diagonal')
 
 plt.xlabel("Matrix Dimension: $2^{N} \\times 2^{N}$")
-plt.ylabel('Execution Time [s]')
+plt.ylabel('Execution Time [ms]')
 
 plt.grid(True, 'both')
 plt.legend()

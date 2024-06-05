@@ -176,7 +176,7 @@ int main(int argc, char* argv[]){
 
                 tileDimension = j;
 
-                for (int k=1; k<=j; k*=2){  // 1 to j/tile dimension
+                for (int k=1; k*j<=1024; k*=2){  // 1 to k*j=1024 (max. number of threads per block)
                     
                     blockRows = k;
 

@@ -11,7 +11,7 @@
 
 using namespace std;
 
-#define NUM_REPS 100
+#define NUM_REPS 10
 
 int strategy = 0;
 int tileDimension = 4;

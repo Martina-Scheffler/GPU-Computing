@@ -11,7 +11,7 @@
 
 using namespace std;
 
-#define NUM_REPS 10
+#define NUM_REPS 100
 
 int strategy = 0;
 int tileDimension = 4;
@@ -256,7 +256,7 @@ int main(int argc, char* argv[]){
                         myfile << milliseconds << ";";;
                     }
                     else {
-                        // skip entry in file
+                        // skip entry in file and print error (should not happen with defined TD and BR)
                         myfile << ";";
                         printf("ERROR | Size: %d, TD: %d, BR: %d \n", size, tileDimension, blockRows);
                     }

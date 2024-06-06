@@ -23,7 +23,7 @@ Prerequisites:
 - Pandas
 - Matplotlib
 
-e.g. copy to a computer where Matplotlib is installed (into the output/ folder):
+e.g. copy to a computer where Matplotlib is installed (into the `output/` folder):
 ```bash
 scp name.surname@marzola.disi.unitn.it:~/GPU-Computing/Homework1/output/* .
 ```
@@ -104,7 +104,7 @@ Run:
 ```batch
 sbatch analyze_bandwidth_sbatch.sh
 ```
-Then, copy to a machine with Python installed
+Then, copy to a machine with Python installed (into the `output/` folder)
 ```batch
 scp name.surname@marzola.disi.unitn.it:~/GPU-Computing/Homework2/output/* .
 ```

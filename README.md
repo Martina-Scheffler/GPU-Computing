@@ -112,3 +112,6 @@ Run the python script in the `Homework2` folder
 ```batch
 python3 visualization/calculate_bandwidths.py
 ```
+This will print all effective bandwidths for all configurations and generate two plots:
+- A comparison of max. effective bandwidths between the kernels for different matrix sizes
+- A comparison of execution times between CPU and GPU algorithms

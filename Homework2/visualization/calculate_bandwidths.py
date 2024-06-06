@@ -104,3 +104,11 @@ plt.legend()
 
 plt.savefig('./visualization/comparison_gpu_vs_cpu.png', dpi=600)
 plt.show()
+
+
+# Print execution times for a 2^12 x 2^12 matrix (data used in the paper)
+print(cpu_simple_df['mean'].values[11])
+print(cpu_block_df['mean'].values[11])
+print(min_simple[12.0])
+print(min_coalesced[12.0])
+print(min_diagonal[12.0])

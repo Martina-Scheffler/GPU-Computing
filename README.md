@@ -115,3 +115,7 @@ python3 visualization/calculate_bandwidths.py
 This will print all effective bandwidths for all configurations and generate two plots:
 - A comparison of max. effective bandwidths between the kernels for different matrix sizes
 - A comparison of execution times between CPU and GPU algorithms
+
+## Final Project - Sparse Matrix Transposition
+### Testing using DataSet 
+More information on the used matrices can be found in `FinalProject/README.md`.

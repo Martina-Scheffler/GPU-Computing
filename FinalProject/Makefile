@@ -24,5 +24,8 @@ $(TARGETDIR)/import_sparse.o: $(INCDIR)/import_sparse_matrix.cpp $(INCLUDE_HEADE
 	mkdir -p $(@D)
 	$(CC) $^ -o $@ $(LIBS) $(OPT) $(INCLUDE_CPP)
 
+$(TARGETDIR)/transpose:
+	$(NVCC) -o $@ $(TARGETDIR)/transpose.o $(TARGETDIR)/import_sparse.o -lcudart -lcuda -lcusparse
+
 clean:
 	$(TARGETDIR)/*

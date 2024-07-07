@@ -48,8 +48,8 @@ void transpose_cuSparse_CSR(string file){
     cudaMemcpy(dev_values, values, nnz * sizeof(float), cudaMemcpyHostToDevice);
     
     // create CSR matrix
-    cusparseCreateCsr(&sparse_matrix, rows, columns, nnz, dev_row_offsets, dev_col_indices, dev_values, CUDA_R_32I, 
-                        CUDA_R_32I, CUSPARSE_INDEX_BASE_ZERO, CUDA_R_32F);
+    cusparseCreateCsr(&sparse_matrix, rows, columns, nnz, dev_row_offsets, dev_col_indices, dev_values, CUSPARSE_INDEX_32I, 
+                        CUSPARSE_INDEX_32I, CUSPARSE_INDEX_BASE_ZERO, CUDA_R_32F);
 
     // transpose
     
@@ -89,7 +89,7 @@ void transpose_cuSparse_COO(string file){
     cudaMemcpy(dev_values, values, nnz * sizeof(float), cudaMemcpyHostToDevice);
 
     // create COO matrix
-    cusparseCreateCoo(&sparse_matrix, rows, columns, nnz, dev_row_indices, dev_col_indices, dev_values, CUDA_R_32I, 
+    cusparseCreateCoo(&sparse_matrix, rows, columns, nnz, dev_row_indices, dev_col_indices, dev_values, CUSPARSE_INDEX_32I, 
                         CUSPARSE_INDEX_BASE_ZERO, CUDA_R_32F);
     
     // transpose 

@@ -6,7 +6,7 @@
 #include <cuda_runtime.h>
 #include <cusparse.h>
 
-#include "include/import_sparse_matrix.h"
+#include "../include/import_sparse_matrix.h"
 
 using namespace std;
 

@@ -64,6 +64,7 @@ void transpose_cuSparse_CSR(string file){
 
 
 void transpose_cuSparse_COO(string file){
+    cout << "Running cuSparse COO transpose" << "\n";
     // load COO matrix from file
     int rows, columns, nnz;
     int *row_indices, *col_indices;

@@ -20,12 +20,16 @@ $(TARGETDIR)/transpose.o: $(SRCDIR)/transpose.cu
 	mkdir -p $(@D)
 	$(NVCC) $(NVCC_FLAGS) -c $< -o $@ $(NVCC_LIBS) 
 
-$(TARGETDIR)/import_sparse.o: $(INCLUDE_CPP) $(INCLUDE_HEADERS)
+$(TARGETDIR)/mmio.o: $(INCDIR)/mmio.c $(INCDIR)/mmio.h
 	mkdir -p $(@D)
-	$(CC) -o $@ -c $^ $(LIBS) $(OPT)
+	$(CC) -o $@ -c $< $(LIBS) $(OPT)
+
+$(TARGETDIR)/import_sparse.o: $(INCDIR)/import_sparse_matrix.cpp $(INCDIR)/import_sparse_matrix.h
+	mkdir -p $(@D)
+	$(CC) -o $@ -c $< $(LIBS) $(OPT)
 
 $(TARGETDIR)/transpose:
-	$(NVCC) -o $@ $(TARGETDIR)/transpose.o $(TARGETDIR)/import_sparse.o -lcudart -lcuda -lcusparse
+	$(NVCC) -o $@ $(TARGETDIR)/transpose.o $(TARGETDIR)/mmio.o $(TARGETDIR)/import_sparse.o -lcudart -lcuda -lcusparse
 
 clean:
 	$(TARGETDIR)/*

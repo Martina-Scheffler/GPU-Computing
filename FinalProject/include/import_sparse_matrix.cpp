@@ -8,14 +8,14 @@
 
 
 
-inline bool isEqual(double x, double y)
+inline bool isEqual(float x, float y)
 {
-  const double epsilon = 1e-5;
+  const float epsilon = 1e-5;
   return std::abs(x - y) <= epsilon * std::abs(x);
 }
 
 
-void to_csr(double** dense_matrix, int M, int N, int nz, int* row_offsets, int* column_indices, double* values){
+void to_csr(float** dense_matrix, int M, int N, int nz, int* row_offsets, int* column_indices, float* values){
     int nz_idx = 0;
     
     for (int i=0; i<M; i++){
@@ -33,10 +33,10 @@ void to_csr(double** dense_matrix, int M, int N, int nz, int* row_offsets, int* 
 }
 
 
-void csr_to_file(const char* file, int M, int N, int nz, int* row_offsets, int* column_indices, double* values){
+void csr_to_file(const char* file, int M, int N, int nz, int* row_offsets, int* column_indices, float* values){
     std::ofstream csr_f;
     std::string file_str = (std::string) file;
-    csr_f.open(file_str.substr(0, file_str.size()-4) + "_csr.csv");
+    csr_f.open("test_matrices/csr/" + file_str.substr(14, file_str.size()-4) + "_csr.csv");
 
     csr_f << M << "\n";   // rows
     csr_f << N << "\n";   // columns
@@ -64,7 +64,7 @@ void csr_to_file(const char* file, int M, int N, int nz, int* row_offsets, int* 
 }
 
 
-void to_coo(double** dense_matrix, int M, int N, int nz, int* row_indices, int* column_indices, double* values){
+void to_coo(float** dense_matrix, int M, int N, int nz, int* row_indices, int* column_indices, float* values){
     int nz_idx = 0;
     
     for (int i=0; i<M; i++){
@@ -80,10 +80,10 @@ void to_coo(double** dense_matrix, int M, int N, int nz, int* row_indices, int* 
     }
 }
 
-void coo_to_file(const char* file, int M, int N, int nz, int* row_indices, int* column_indices, double* values){
+void coo_to_file(const char* file, int M, int N, int nz, int* row_indices, int* column_indices, float* values){
     std::ofstream coo_f;
     std::string file_str = (std::string) file;
-    coo_f.open(file_str.substr(0, file_str.size()-4) + "_coo.csv");
+    coo_f.open("test_matrices/coo/" + file_str.substr(14, file_str.size()-4) + "_coo.csv");
 
     coo_f << M << "\n";   // rows
     coo_f << N << "\n";   // columns
@@ -125,11 +125,11 @@ void convert_mtx_to_file(const char* file){
     mm_read_mtx_crd_size(f, &M, &N, &nz);
 
     // create dense matrix 
-    double** dense_matrix = new double*[M];
+    float** dense_matrix = new float*[M];
 
     // fill with zeros
     for (int i=0; i<M; i++){
-        dense_matrix[i] = new double[N];
+        dense_matrix[i] = new float[N];
         for (int j=0; j<N; j++){
             dense_matrix[i][j] = 0.0;
         }
@@ -145,13 +145,13 @@ void convert_mtx_to_file(const char* file){
         row--;  /* adjust from 1-based to 0-based */
         column--;
 
-        dense_matrix[row][column] = value;
+        dense_matrix[row][column] = (float) value;
     }
 
     // convert to CSR
     int row_offsets[M+1];
     int column_indices[nz];
-    double values[nz];
+    float values[nz];
 
     to_csr(dense_matrix, M, N, nz, row_offsets, column_indices, values);   
 
@@ -162,7 +162,7 @@ void convert_mtx_to_file(const char* file){
     // convert to COO
     int row_indices_coo[nz];
     int column_indices_coo[nz];
-    double values_coo[nz];
+    float values_coo[nz];
 
     to_coo(dense_matrix, M, N, nz, row_indices_coo, column_indices_coo, values_coo);
 

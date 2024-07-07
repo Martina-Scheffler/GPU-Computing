@@ -117,5 +117,21 @@ This will print all effective bandwidths for all configurations and generate two
 - A comparison of execution times between CPU and GPU algorithms
 
 ## Final Project - Sparse Matrix Transposition
+### Clone
+```bash
+ssh name.surname@marzola.disi.unitn.it
+```
+```bash
+git clone https://github.com/Martina-Scheffler/GPU-Computing.git
+```
+```bash
+cd GPU-Computing/FinalProject/
+```
+
 ### Testing using DataSet 
-More information on the used matrices can be found in `FinalProject/README.md`.
+The matrices that can be used for testing and a description of them can be found in [`FinalProject/test_matrices/`](FinalProject/test_matrices/). 
+
+### Run
+```batch
+sbatch transpose_sparse_sbatch.sh
+```

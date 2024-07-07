@@ -260,21 +260,3 @@ void csr_from_file(string file, int &rows, int &cols, int &nnz, int*& row_offset
 
     csr_f.close();
 }
-
-
-int main(int argc, char* argv[]){
-    int rows, cols, nnz;
-    int *row_idx, *col_idx;
-    float *vals;
-
-    csr_from_file("test_matrices/csr/1-bp_200_csr.csv", rows, cols, nnz, row_idx, col_idx, vals);
-
-    cout << rows << "\n";
-    cout << cols << "\n";
-    cout << nnz << "\n";
-    cout << row_idx[0] << "\n";
-    cout << col_idx[0] << "\n";
-    cout << vals[0] << "\n";
-    
-    return 0;
-}

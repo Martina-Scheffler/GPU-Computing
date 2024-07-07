@@ -36,7 +36,7 @@ void to_csr(float** dense_matrix, int M, int N, int nz, int* row_offsets, int* c
 void csr_to_file(const char* file, int M, int N, int nz, int* row_offsets, int* column_indices, float* values){
     std::ofstream csr_f;
     std::string file_str = (std::string) file;
-    csr_f.open("test_matrices/csr/" + file_str.substr(14, file_str.size()-4) + "_csr.csv");
+    csr_f.open("test_matrices/csr/" + file_str.substr(14, file_str.size()-18) + "_csr.csv");
 
     csr_f << M << "\n";   // rows
     csr_f << N << "\n";   // columns
@@ -83,7 +83,7 @@ void to_coo(float** dense_matrix, int M, int N, int nz, int* row_indices, int* c
 void coo_to_file(const char* file, int M, int N, int nz, int* row_indices, int* column_indices, float* values){
     std::ofstream coo_f;
     std::string file_str = (std::string) file;
-    coo_f.open("test_matrices/coo/" + file_str.substr(14, file_str.size()-4) + "_coo.csv");
+    coo_f.open("test_matrices/coo/" + file_str.substr(14, file_str.size()-18) + "_coo.csv");
 
     coo_f << M << "\n";   // rows
     coo_f << N << "\n";   // columns
@@ -173,6 +173,6 @@ void convert_mtx_to_file(const char* file){
 
 
 int main(int argc, char* argv[]){
-    convert_mtx_to_file("test_matrices/8-ch5-5-b3.mtx");
+    convert_mtx_to_file("test_matrices/1-bp_200.mtx");
     return 0;
 }

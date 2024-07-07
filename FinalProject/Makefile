@@ -14,7 +14,7 @@ INCLUDE_HEADERS := $(INCDIR)/mmio.h
 INCLUDE_CPP := $(INCDIR)/mmio.c
 
 
-all: $(TARGETDIR)/transpose.o $(TARGETDIR)/import_sparse.o
+all: $(TARGETDIR)/transpose.o $(TARGETDIR)/import_sparse.o $(TARGETDIR)/transpose
 
 $(TARGETDIR)/transpose.o: $(SRCDIR)/transpose.cu
 	mkdir -p $(@D)

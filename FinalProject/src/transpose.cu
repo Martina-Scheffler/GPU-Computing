@@ -57,7 +57,7 @@ void transpose_cuSparse_CSR(string file){
     cusparseDestroySpMat(sparse_matrix);
 
     // free device memory
-    cudaFree(dev_rows_offsets);
+    cudaFree(dev_row_offsets);
     cudaFree(dev_col_indices);
     cudaFree(dev_values);
 }
@@ -65,11 +65,11 @@ void transpose_cuSparse_CSR(string file){
 
 void transpose_cuSparse_COO(string file){
     // load COO matrix from file
-    int rows, cols, nnz;
+    int rows, columns, nnz;
     int *row_indices, *col_indices;
     float* values;
 
-    coo_from_file(file, rows, cols, nnz, row_indices, col_indices, values);
+    coo_from_file(file, rows, columns, nnz, row_indices, col_indices, values);
 
     // create COO CUDA matrix using cuSparse 
     cusparseSpMatDescr_t sparse_matrix;
@@ -101,14 +101,14 @@ void transpose_cuSparse_COO(string file){
     cusparseDestroySpMat(sparse_matrix);
 
     // free device memory
-    cudaFree(dev_rows_indices);
+    cudaFree(dev_row_indices);
     cudaFree(dev_col_indices);
     cudaFree(dev_values);
 }
 
 
 int main(int argc, char* argv[]){
-    transpose_cuSparse_COO("test_matrices/coo/1-bp_200_coo.csv")
+    transpose_cuSparse_COO("test_matrices/coo/1-bp_200_coo.csv");
     
     return 0;
 }

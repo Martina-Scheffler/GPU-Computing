@@ -6,12 +6,14 @@
 
 #include "mmio.h"
 
+using namespace std;
+
 
 
 inline bool isEqual(float x, float y)
 {
   const float epsilon = 1e-5;
-  return std::abs(x - y) <= epsilon * std::abs(x);
+  return abs(x - y) <= epsilon * std::abs(x);
 }
 
 
@@ -34,8 +36,8 @@ void to_csr(float** dense_matrix, int M, int N, int nz, int* row_offsets, int* c
 
 
 void csr_to_file(const char* file, int M, int N, int nz, int* row_offsets, int* column_indices, float* values){
-    std::ofstream csr_f;
-    std::string file_str = (std::string) file;
+    ofstream csr_f;
+    string file_str = (string) file;
     csr_f.open("test_matrices/csr/" + file_str.substr(14, file_str.size()-18) + "_csr.csv");
 
     csr_f << M << "\n";   // rows
@@ -81,8 +83,8 @@ void to_coo(float** dense_matrix, int M, int N, int nz, int* row_indices, int* c
 }
 
 void coo_to_file(const char* file, int M, int N, int nz, int* row_indices, int* column_indices, float* values){
-    std::ofstream coo_f;
-    std::string file_str = (std::string) file;
+    ofstream coo_f;
+    string file_str = (string) file;
     coo_f.open("test_matrices/coo/" + file_str.substr(14, file_str.size()-18) + "_coo.csv");
 
     coo_f << M << "\n";   // rows
@@ -172,7 +174,107 @@ void convert_mtx_to_file(const char* file){
 }
 
 
+void coo_from_file(string file, int &rows, int &cols, int &nnz, int*& row_indices, int*& col_indices, float*& values){
+    ifstream coo_f(file);
+    string line; 
+
+    // first line is number of rows
+    getline(coo_f, line);
+    rows = stoi(line);
+
+    // second line is number of cols
+    getline(coo_f, line);
+    cols = stoi(line);
+
+    // third line is number of non-zero elements
+    getline(coo_f, line);
+    nnz = stoi(line);
+
+    // fourth line are the row indices
+    row_indices = (int*) malloc(nnz * sizeof(int));
+
+    for (int i=0; i<nnz; i++){
+        std::getline(coo_f, line, ',');  
+        row_indices[i] = stoi(line);
+    }
+
+    // five line are the column indices
+    col_indices = (int*) malloc(nnz * sizeof(int));
+
+    for (int i=0; i<nnz; i++){
+        std::getline(coo_f, line, ',');  
+        col_indices[i] = stoi(line);
+    }
+
+    // sixth line are the values
+    values = (float*) malloc(nnz * sizeof(float));
+
+    for (int i=0; i<nnz; i++){
+        std::getline(coo_f, line, ',');  
+        values[i] = stoi(line);
+    }
+
+    coo_f.close();
+}
+
+
+void csr_from_file(string file, int &rows, int &cols, int &nnz, int*& row_offsets, int*& col_indices, float*& values){
+    ifstream csr_f(file);
+    string line; 
+
+    // first line is number of rows
+    getline(csr_f, line);
+    rows = stoi(line);
+
+    // second line is number of cols
+    getline(csr_f, line);
+    cols = stoi(line);
+
+    // third line is number of non-zero elements
+    getline(csr_f, line);
+    nnz = stoi(line);
+
+    // fourth line are the row offsets
+    row_offsets = (int*) malloc((rows+1) * sizeof(int));
+
+    for (int i=0; i<rows+1; i++){
+        std::getline(csr_f, line, ',');  
+        row_offsets[i] = stoi(line);
+    }
+
+    // five line are the column indices
+    col_indices = (int*) malloc(nnz * sizeof(int));
+
+    for (int i=0; i<nnz; i++){
+        std::getline(csr_f, line, ',');  
+        col_indices[i] = stoi(line);
+    }
+
+    // sixth line are the values
+    values = (float*) malloc(nnz * sizeof(float));
+
+    for (int i=0; i<nnz; i++){
+        std::getline(csr_f, line, ',');  
+        values[i] = stoi(line);
+    }
+
+    csr_f.close();
+}
+
+
 int main(int argc, char* argv[]){
-    convert_mtx_to_file("test_matrices/1-bp_200.mtx");
+    int rows, cols, nnz;
+    int *row_idx, *col_idx;
+    float *vals;
+
+    csr_from_file("test_matrices/csr/1-bp_200_csr.csv", rows, cols, nnz, row_idx, col_idx, vals);
+
+    cout << rows << "\n";
+    cout << cols << "\n";
+    cout << nnz << "\n";
+    cout << row_idx[0] << "\n";
+    cout << col_idx[0] << "\n";
+    cout << vals[0] << "\n";
+    
     return 0;
 }

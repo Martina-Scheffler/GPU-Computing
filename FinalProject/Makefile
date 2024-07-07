@@ -22,7 +22,7 @@ $(TARGETDIR)/transpose.o: $(SRCDIR)/transpose.cu
 
 $(TARGETDIR)/import_sparse.o: $(INCLUDE_CPP) $(INCLUDE_HEADERS)
 	mkdir -p $(@D)
-	$(CC) -o $@ -c $< $(LIBS) $(OPT)
+	$(CC) -o $@ -c $^ $(LIBS) $(OPT)
 
 $(TARGETDIR)/transpose:
 	$(NVCC) -o $@ $(TARGETDIR)/transpose.o $(TARGETDIR)/import_sparse.o -lcudart -lcuda -lcusparse

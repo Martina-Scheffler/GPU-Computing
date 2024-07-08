@@ -33,7 +33,7 @@ void transpose_cuSparse_CSR(string file){
     // create CSR matrix using cuSparse
     cusparseSpMatDescr_t sparse_matrix;
 
-    // void* for the three arrays
+    // create arrays on device
     int *dev_row_offsets, *dev_col_indices;
     float* dev_values;
 
@@ -58,7 +58,7 @@ void transpose_cuSparse_CSR(string file){
     int *dev_tp_row_indices, *dev_tp_col_offsets;
     float* dev_tp_values;
     cudaMalloc(&dev_tp_row_indices, nnz * sizeof(int));
-    cudaMalloc(&dev_tp_col_offsets, (columns + 1) * sizeof(int));
+    cudaMalloc(&dev_tp_col_offsets, (columns+1) * sizeof(int));
     cudaMalloc(&dev_tp_values, nnz * sizeof(float));
 
     size_t buffer_size;
@@ -79,7 +79,7 @@ void transpose_cuSparse_CSR(string file){
                         CUSPARSE_INDEX_BASE_ZERO, CUSPARSE_CSR2CSC_ALG_DEFAULT, buffer);
 
     // copy results back to host
-    int *row_offsets_tp = (int*) malloc((columns + 1) * sizeof(int));
+    int *row_offsets_tp = (int*) malloc((columns+1) * sizeof(int));
     int *col_indices_tp = (int*) malloc(nnz * sizeof(int));
     float* values_tp = (float*) malloc(nnz * sizeof(float));
 
@@ -153,7 +153,7 @@ void transpose_cuSparse_COO(string file){
 
 
 int main(int argc, char* argv[]){
-    transpose_cuSparse_CSR("test_matrices/csr/1-bp_200_csr.csv");
+    transpose_cuSparse_CSR("test_matrices/csr/0-test_csr.csv");
     
     return 0;
 }

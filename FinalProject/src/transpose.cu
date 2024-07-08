@@ -34,8 +34,8 @@ void transpose_cuSparse_CSR(string file){
     //     printf("%d\n", row_offsets[i]);
     // }
 
-    // create CSR matrix using cuSparse
-    cusparseSpMatDescr_t sparse_matrix;
+    // // create CSR matrix using cuSparse
+    // cusparseSpMatDescr_t sparse_matrix;
 
     // create arrays on device
     int *dev_row_offsets, *dev_col_indices;

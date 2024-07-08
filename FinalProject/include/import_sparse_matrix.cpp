@@ -38,7 +38,7 @@ void to_csr(float** dense_matrix, int M, int N, int nz, int*& row_offsets, int*&
 void csr_to_file(const char* file, int M, int N, int nz, int*& row_offsets, int*& column_indices, float*& values){
     ofstream csr_f;
     string file_str = (string) file;
-    csr_f.open("test_matrices/csr/" + file_str.substr(14, file_str.size()-18) + "_csr.csv");
+    csr_f.open("test_matrices/csr/" + file_str.substr(14, 1) + "_csr.csv");
 
     csr_f << M << "\n";   // rows
     csr_f << N << "\n";   // columns
@@ -114,7 +114,7 @@ void to_coo(float** dense_matrix, int M, int N, int nz, int*& row_indices, int*&
 void coo_to_file(const char* file, int M, int N, int nz, int*& row_indices, int*& column_indices, float*& values){
     ofstream coo_f;
     string file_str = (string) file;
-    coo_f.open("test_matrices/coo/" + file_str.substr(14, file_str.size()-18) + "_coo.csv");
+    coo_f.open("test_matrices/coo/" + file_str.substr(14, 1) + "_coo.csv");
 
     coo_f << M << "\n";   // rows
     coo_f << N << "\n";   // columns
@@ -298,10 +298,3 @@ void csr_from_file(string file, int &rows, int &cols, int &nnz, int*& row_offset
 
     csr_f.close();
 }
-
-
-// int main(int argc, char* argv[]){
-//     convert_mtx_to_file("test_matrices/10-qh768.mtx");
-
-//     return 0;
-// }

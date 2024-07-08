@@ -30,9 +30,9 @@ void transpose_cuSparse_CSR(string file){
 
     csr_from_file(file, rows, columns, nnz, row_offsets, col_indices, values);
 
-    for (int i=0; i<rows+1; i++){
-        printf("%d\n", row_offsets[i]);
-    }
+    // for (int i=0; i<rows+1; i++){
+    //     printf("%d\n", row_offsets[i]);
+    // }
 
     // create CSR matrix using cuSparse
     cusparseSpMatDescr_t sparse_matrix;
@@ -52,8 +52,8 @@ void transpose_cuSparse_CSR(string file){
     cudaMemcpy(dev_values, values, nnz * sizeof(float), cudaMemcpyHostToDevice);
     
     // create CSR matrix
-    cusparseCreateCsr(&sparse_matrix, rows, columns, nnz, dev_row_offsets, dev_col_indices, dev_values, 
-                        CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I, CUSPARSE_INDEX_BASE_ZERO, CUDA_R_32F);
+    // cusparseCreateCsr(&sparse_matrix, rows, columns, nnz, dev_row_offsets, dev_col_indices, dev_values, 
+    //                     CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I, CUSPARSE_INDEX_BASE_ZERO, CUDA_R_32F);
 
     // reserve buffer space necessary for the transpose
     cusparseHandle_t handle;
@@ -69,18 +69,17 @@ void transpose_cuSparse_CSR(string file){
 
     cusparseCsr2cscEx2_bufferSize(handle, rows, columns, nnz, dev_values, dev_row_offsets, dev_col_indices, 
                                     dev_tp_values, dev_tp_col_offsets, dev_tp_row_indices, CUDA_R_32F, 
-                                    CUSPARSE_ACTION_NUMERIC, CUSPARSE_INDEX_BASE_ZERO, CUSPARSE_CSR2CSC_ALG_DEFAULT,
+                                    CUSPARSE_ACTION_NUMERIC, CUSPARSE_INDEX_BASE_ZERO, CUSPARSE_CSR2CSC_ALG1,
                                     &buffer_size); 
 
     cout << buffer_size << "\n"; 
-                              
                               
     // transpose by converting from CSR to CSC
     void* buffer;
     cudaMalloc(&buffer, buffer_size);
     cusparseCsr2cscEx2(handle, rows, columns, nnz, dev_values, dev_row_offsets, dev_col_indices, dev_tp_values, 
                         dev_tp_col_offsets, dev_tp_row_indices, CUDA_R_32F, CUSPARSE_ACTION_NUMERIC, 
-                        CUSPARSE_INDEX_BASE_ZERO, CUSPARSE_CSR2CSC_ALG_DEFAULT, buffer);
+                        CUSPARSE_INDEX_BASE_ZERO, CUSPARSE_CSR2CSC_ALG1, buffer);
 
     // copy results back to host
     int *row_offsets_tp = (int*) malloc((columns+1) * sizeof(int));
@@ -91,9 +90,9 @@ void transpose_cuSparse_CSR(string file){
     cudaMemcpy(row_offsets_tp, dev_tp_col_offsets, (columns + 1) * sizeof(int), cudaMemcpyDeviceToHost);
     cudaMemcpy(values_tp, dev_tp_values, nnz * sizeof(float), cudaMemcpyDeviceToHost);
 
-    // for (int i=0; i<columns+1; i++){
-    //     printf("%d\n", row_offsets_tp[i]);
-    // }
+    for (int i=0; i<columns+1; i++){
+        printf("%d\n", row_offsets_tp[i]);
+    }
 
     // save transposed matrix to file
     transposed_csr_to_file(file, columns, rows, nnz, row_offsets_tp, col_indices_tp, values_tp);

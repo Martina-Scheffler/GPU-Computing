@@ -162,7 +162,17 @@ void transpose_cuSparse_COO(string file){
 
 
 int main(int argc, char* argv[]){
+    transpose_cuSparse_CSR("test_matrices/csr/0-test_csr.csv");
     transpose_cuSparse_CSR("test_matrices/csr/1-bp_200_csr.csv");
+    transpose_cuSparse_CSR("test_matrices/csr/2-fs_183-1_csr.csv");
+    transpose_cuSparse_CSR("test_matrices/csr/3-fs_541_1_csr.csv");
+    transpose_cuSparse_CSR("test_matrices/csr/4-pores_2_csr.csv");
+    transpose_cuSparse_CSR("test_matrices/csr/5-shl_200_csr.csv");
+    transpose_cuSparse_CSR("test_matrices/csr/6-GD96_a_csr.csv");
+    transpose_cuSparse_CSR("test_matrices/csr/7-GD00_c_csr.csv");
+    transpose_cuSparse_CSR("test_matrices/csr/8-ch5-5-b3_csr.csv");
+    transpose_cuSparse_CSR("test_matrices/csr/9-dw256A_csr.csv");
+    transpose_cuSparse_CSR("test_matrices/csr/10-qh768_csr.csv");
     
     return 0;
 }

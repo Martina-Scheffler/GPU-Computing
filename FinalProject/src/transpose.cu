@@ -162,7 +162,7 @@ void transpose_cuSparse_COO(string file){
 
 
 int main(int argc, char* argv[]){
-    transpose_cuSparse_CSR("test_matrices/csr/2-fs_183_1_csr.csv");
+    transpose_cuSparse_CSR("test_matrices/csr/0-test_csr.csv");
     
     return 0;
 }

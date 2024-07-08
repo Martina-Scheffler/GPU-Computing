@@ -92,8 +92,8 @@ void transpose_cuSparse_CSR(string file){
     cudaMemcpy(row_offsets_tp, dev_tp_col_offsets, (columns + 1) * sizeof(int), cudaMemcpyDeviceToHost);
     cudaMemcpy(values_tp, dev_tp_values, nnz * sizeof(float), cudaMemcpyDeviceToHost);
 
-    for (int i=0; i<columns+1; i++){
-        printf("%d\n", row_offsets_tp[i]);
+    for (int i=0; i<nnz; i++){
+        printf("%f\n", values_tp[i]);
     }
 
     // save transposed matrix to file

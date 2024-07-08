@@ -81,6 +81,8 @@ void transpose_cuSparse_CSR(string file){
                         dev_tp_col_offsets, dev_tp_row_indices, CUDA_R_32F, CUSPARSE_ACTION_NUMERIC, 
                         CUSPARSE_INDEX_BASE_ZERO, CUSPARSE_CSR2CSC_ALG1, buffer);
 
+    cudaDeviceSynchronize();
+
     // copy results back to host
     int *row_offsets_tp = (int*) malloc((columns+1) * sizeof(int));
     int *col_indices_tp = (int*) malloc(nnz * sizeof(int));

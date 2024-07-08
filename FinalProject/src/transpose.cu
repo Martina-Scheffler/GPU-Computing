@@ -74,7 +74,7 @@ void transpose_cuSparse_CSR(string file){
     // transpose by converting from CSR to CSC
     void* buffer;
     cudaMalloc(&buffer, buffer_size);
-    cusparseCsr2cscEx2(handle, row, columns, nnz, dev_values, dev_row_offsets, dev_col_indices, dev_tp_values, 
+    cusparseCsr2cscEx2(handle, rows, columns, nnz, dev_values, dev_row_offsets, dev_col_indices, dev_tp_values, 
                         dev_tp_col_offsets, dev_tp_row_indices, CUDA_R_32F, CUSPARSE_ACTION_NUMERIC, 
                         CUSPARSE_INDEX_BASE_ZERO, CUSPARSE_CSR2CSC_ALG_DEFAULT, buffer);
 

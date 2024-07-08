@@ -48,18 +48,54 @@ void transpose_cuSparse_CSR(string file){
     cudaMemcpy(dev_values, values, nnz * sizeof(float), cudaMemcpyHostToDevice);
     
     // create CSR matrix
-    cusparseCreateCsr(&sparse_matrix, rows, columns, nnz, dev_row_offsets, dev_col_indices, dev_values, CUSPARSE_INDEX_32I, 
-                        CUSPARSE_INDEX_32I, CUSPARSE_INDEX_BASE_ZERO, CUDA_R_32F);
+    cusparseCreateCsr(&sparse_matrix, rows, columns, nnz, dev_row_offsets, dev_col_indices, dev_values, 
+                        CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I, CUSPARSE_INDEX_BASE_ZERO, CUDA_R_32F);
 
-    // transpose
+    // reserve buffer space necessary for the transpose
+    cusparseHandle_t handle;
+    cudaMalloc(&dev_tp_row_indices, nnz * sizeof(int));
+    cudaMalloc(&dev_tp_col_offsets, (columns + 1) * sizeof(int));
+    cudaMalloc(&dev_tp_values, nnz * sizeof(float));
+    size_t buffer_size;
+
+    cusparseCsr2cscEx2_bufferSize(handle, rows, columns, nnz, dev_values, dev_row_offsets, dev_col_indices, 
+                                    dev_tp_values, dev_tp_col_offsets, dev_tp_row_indices, CUDA_R_32F, 
+                                    CUSPARSE_ACTION_NUMERIC, CUSPARSE_INDEX_BASE_ZERO, CUSPARSE_CSR2CSC_ALG_DEFAULT,
+                                    &buffer_size); 
+
+    cout << buffer_size << "\n"; 
+                              
+                              
+    // transpose by converting from CSR to CSC
+    void* buffer = NULL;
+    cusparseCsr2cscEx2(handle, row, columns, nnz, dev_values, dev_row_offsets, dev_col_indices, dev_tp_values, 
+                        dev_tp_col_offsets, dev_tp_row_indices, CUDA_R_32F, CUSPARSE_ACTION_NUMERIC, 
+                        CUSPARSE_INDEX_BASE_ZERO, CUSPARSE_CSR2CSC_ALG_DEFAULT, buffer);
+
+    // copy results back to host
+    int *row_indices = (int*) malloc(nnz * sizeof(int));
+    int *col_offsets = (int*) malloc((columns + 1) * sizeof(int));
+    float* values_csc = (float*) malloc(nnz * sizeof(float));
+
+    cudaMemcpy(row_indices, dev_tp_row_indices, nnz * sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(col_offsets, dev_tp_col_offsets, (columns + 1) * sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(values_csc, dev_tp_values, nnz * sizeof(float), cudaMemcpyDeviceToHost);
+                   
     
     // destroy matrix
     cusparseDestroySpMat(sparse_matrix);
+
+    // destroy handle
+    cusparseDestroy(handle);
 
     // free device memory
     cudaFree(dev_row_offsets);
     cudaFree(dev_col_indices);
     cudaFree(dev_values);
+
+    cudaFree(dev_tp_row_indices);
+    cudaFree(dev_tp_col_offsets);
+    cudaFree(dev_tp_values);
 }
 
 
@@ -109,7 +145,7 @@ void transpose_cuSparse_COO(string file){
 
 
 int main(int argc, char* argv[]){
-    transpose_cuSparse_COO("test_matrices/coo/1-bp_200_coo.csv");
+    transpose_cuSparse_CSR("test_matrices/coo/1-bp_200_coo.csv");
     
     return 0;
 }

@@ -300,8 +300,8 @@ void csr_from_file(string file, int &rows, int &cols, int &nnz, int*& row_offset
 }
 
 
-int main(int argc, char* argv[]){
-    convert_mtx_to_file("test_matrices/10-qh768.mtx");
+// int main(int argc, char* argv[]){
+//     convert_mtx_to_file("test_matrices/10-qh768.mtx");
 
-    return 0;
-}
+//     return 0;
+// }

@@ -113,6 +113,14 @@ void transpose_cuSparse_CSR(string file){
     cudaFree(dev_tp_row_indices);
     cudaFree(dev_tp_col_offsets);
     cudaFree(dev_tp_values);
+
+    // free host memory
+    free(row_offsets);
+    free(col_indices);
+    free(values);
+    free(row_offsets_tp);
+    free(col_indices_tp);
+    free(values_tp);
 }
 
 

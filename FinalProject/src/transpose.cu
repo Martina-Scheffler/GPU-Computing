@@ -170,28 +170,28 @@ void transpose_cuSparse_COO(string file){
 
 
 int main(int argc, char* argv[]){
-    cout << "Matrix 0\n";
-    transpose_cuSparse_CSR("test_matrices/csr/0_csr.csv");
-    cout << "Matrix 1\n";
-    transpose_cuSparse_CSR("test_matrices/csr/1_csr.csv");
-    cout << "Matrix 2\n";
-    transpose_cuSparse_CSR("test_matrices/csr/2_csr.csv");
+    // cout << "Matrix 0\n";
+    // transpose_cuSparse_CSR("test_matrices/csr/0_csr.csv");
+    // cout << "Matrix 1\n";
+    // transpose_cuSparse_CSR("test_matrices/csr/1_csr.csv");
+    // cout << "Matrix 2\n";
+    // transpose_cuSparse_CSR("test_matrices/csr/2_csr.csv");
     cout << "Matrix 3\n";
     transpose_cuSparse_CSR("test_matrices/csr/3_csr.csv");
-    cout << "Matrix 4\n";
-    transpose_cuSparse_CSR("test_matrices/csr/4_csr.csv");
-    cout << "Matrix 5\n";
-    transpose_cuSparse_CSR("test_matrices/csr/5_csr.csv");
-    cout << "Matrix 6\n";
-    transpose_cuSparse_CSR("test_matrices/csr/6_csr.csv");
-    cout << "Matrix 7\n";
-    transpose_cuSparse_CSR("test_matrices/csr/7_csr.csv");
-    cout << "Matrix 8\n";
-    transpose_cuSparse_CSR("test_matrices/csr/8_csr.csv");
-    cout << "Matrix 9\n";
-    transpose_cuSparse_CSR("test_matrices/csr/9_csr.csv");
-    cout << "Matrix 10\n";
-    transpose_cuSparse_CSR("test_matrices/csr/10_csr.csv");
+    // cout << "Matrix 4\n";
+    // transpose_cuSparse_CSR("test_matrices/csr/4_csr.csv");
+    // cout << "Matrix 5\n";
+    // transpose_cuSparse_CSR("test_matrices/csr/5_csr.csv");
+    // cout << "Matrix 6\n";
+    // transpose_cuSparse_CSR("test_matrices/csr/6_csr.csv");
+    // cout << "Matrix 7\n";
+    // transpose_cuSparse_CSR("test_matrices/csr/7_csr.csv");
+    // cout << "Matrix 8\n";
+    // transpose_cuSparse_CSR("test_matrices/csr/8_csr.csv");
+    // cout << "Matrix 9\n";
+    // transpose_cuSparse_CSR("test_matrices/csr/9_csr.csv");
+    // cout << "Matrix 10\n";
+    // transpose_cuSparse_CSR("test_matrices/csr/10_csr.csv");
     
     return 0;
 }

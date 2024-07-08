@@ -30,6 +30,10 @@ void transpose_cuSparse_CSR(string file){
 
     csr_from_file(file, rows, columns, nnz, row_offsets, col_indices, values);
 
+    for (int i=0; i<rows+1; i++){
+        printf("%d\n", row_offsets[i]);
+    }
+
     // create CSR matrix using cuSparse
     cusparseSpMatDescr_t sparse_matrix;
 
@@ -87,9 +91,9 @@ void transpose_cuSparse_CSR(string file){
     cudaMemcpy(row_offsets_tp, dev_tp_col_offsets, (columns + 1) * sizeof(int), cudaMemcpyDeviceToHost);
     cudaMemcpy(values_tp, dev_tp_values, nnz * sizeof(float), cudaMemcpyDeviceToHost);
 
-    for (int i=0; i<columns+1; i++){
-        printf("%d\n", row_offsets_tp[i]);
-    }
+    // for (int i=0; i<columns+1; i++){
+    //     printf("%d\n", row_offsets_tp[i]);
+    // }
 
     // save transposed matrix to file
     transposed_csr_to_file(file, columns, rows, nnz, row_offsets_tp, col_indices_tp, values_tp);

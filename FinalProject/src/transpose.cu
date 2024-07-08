@@ -53,9 +53,14 @@ void transpose_cuSparse_CSR(string file){
 
     // reserve buffer space necessary for the transpose
     cusparseHandle_t handle;
+    cusparseCreate(&handle);
+
+    int *dev_tp_row_indices, *dev_tp_col_offsets;
+    float* dev_tp_values;
     cudaMalloc(&dev_tp_row_indices, nnz * sizeof(int));
     cudaMalloc(&dev_tp_col_offsets, (columns + 1) * sizeof(int));
     cudaMalloc(&dev_tp_values, nnz * sizeof(float));
+
     size_t buffer_size;
 
     cusparseCsr2cscEx2_bufferSize(handle, rows, columns, nnz, dev_values, dev_row_offsets, dev_col_indices, 
@@ -67,7 +72,8 @@ void transpose_cuSparse_CSR(string file){
                               
                               
     // transpose by converting from CSR to CSC
-    void* buffer = NULL;
+    void* buffer;
+    cudaMalloc(&buffer, buffer_size);
     cusparseCsr2cscEx2(handle, row, columns, nnz, dev_values, dev_row_offsets, dev_col_indices, dev_tp_values, 
                         dev_tp_col_offsets, dev_tp_row_indices, CUDA_R_32F, CUSPARSE_ACTION_NUMERIC, 
                         CUSPARSE_INDEX_BASE_ZERO, CUSPARSE_CSR2CSC_ALG_DEFAULT, buffer);

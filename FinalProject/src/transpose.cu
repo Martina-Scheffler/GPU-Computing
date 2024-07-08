@@ -77,11 +77,11 @@ void transpose_cuSparse_CSR(string file){
     // transpose by converting from CSR to CSC
     void* buffer;
     cudaMalloc(&buffer, buffer_size);
-    cusparseCsr2cscEx2(handle, rows, columns, nnz, dev_values, dev_row_offsets, dev_col_indices, dev_tp_values, 
+    cusparseStatus_t result = cusparseCsr2cscEx2(handle, rows, columns, nnz, dev_values, dev_row_offsets, dev_col_indices, dev_tp_values, 
                         dev_tp_col_offsets, dev_tp_row_indices, CUDA_R_32F, CUSPARSE_ACTION_NUMERIC, 
                         CUSPARSE_INDEX_BASE_ZERO, CUSPARSE_CSR2CSC_ALG1, buffer);
 
-    cudaDeviceSynchronize();
+    cout << result << "\n";
 
     // copy results back to host
     int *row_offsets_tp = (int*) malloc((columns+1) * sizeof(int));
@@ -93,14 +93,14 @@ void transpose_cuSparse_CSR(string file){
     cudaMemcpy(values_tp, dev_tp_values, nnz * sizeof(float), cudaMemcpyDeviceToHost);
 
     for (int i=0; i<columns+1; i++){
-        printf("%d\n", dev_tp_col_offsets[i]);
+        printf("%d\n", row_offsets_tp[i]);
     }
 
     // save transposed matrix to file
     transposed_csr_to_file(file, columns, rows, nnz, row_offsets_tp, col_indices_tp, values_tp);
     
-    // destroy matrix
-    cusparseDestroySpMat(sparse_matrix);
+    // // destroy matrix
+    // cusparseDestroySpMat(sparse_matrix);
 
     // destroy handle
     cusparseDestroy(handle);

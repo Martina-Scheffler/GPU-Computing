@@ -249,7 +249,7 @@ void coo_from_file(string file, int &rows, int &cols, int &nnz, int*& row_indice
 
     for (int i=0; i<nnz; i++){
         std::getline(coo_f, line, ',');  
-        values[i] = stoi(line);
+        values[i] = stof(line);
     }
 
     coo_f.close();
@@ -293,7 +293,7 @@ void csr_from_file(string file, int &rows, int &cols, int &nnz, int*& row_offset
 
     for (int i=0; i<nnz; i++){
         std::getline(csr_f, line, ',');  
-        values[i] = stoi(line);
+        values[i] = stof(line);
     }
 
     csr_f.close();

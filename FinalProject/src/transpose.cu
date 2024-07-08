@@ -79,14 +79,16 @@ void transpose_cuSparse_CSR(string file){
                         CUSPARSE_INDEX_BASE_ZERO, CUSPARSE_CSR2CSC_ALG_DEFAULT, buffer);
 
     // copy results back to host
-    int *row_indices = (int*) malloc(nnz * sizeof(int));
-    int *col_offsets = (int*) malloc((columns + 1) * sizeof(int));
-    float* values_csc = (float*) malloc(nnz * sizeof(float));
+    int *row_offsets_tp = (int*) malloc((columns + 1) * sizeof(int));
+    int *col_indices_tp = (int*) malloc(nnz * sizeof(int));
+    float* values_tp = (float*) malloc(nnz * sizeof(float));
 
-    cudaMemcpy(row_indices, dev_tp_row_indices, nnz * sizeof(int), cudaMemcpyDeviceToHost);
-    cudaMemcpy(col_offsets, dev_tp_col_offsets, (columns + 1) * sizeof(int), cudaMemcpyDeviceToHost);
-    cudaMemcpy(values_csc, dev_tp_values, nnz * sizeof(float), cudaMemcpyDeviceToHost);
-                   
+    cudaMemcpy(col_indices_tp, dev_tp_row_indices, nnz * sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(row_offsets_tp, dev_tp_col_offsets, (columns + 1) * sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(values_tp, dev_tp_values, nnz * sizeof(float), cudaMemcpyDeviceToHost);
+
+    // save transposed matrix to file
+    transposed_csr_to_file(file, columns, rows, nnz, row_offsets_tp, col_indices_tp, values_tp);
     
     // destroy matrix
     cusparseDestroySpMat(sparse_matrix);

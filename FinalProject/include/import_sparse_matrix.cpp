@@ -65,6 +65,35 @@ void csr_to_file(const char* file, int M, int N, int nz, int* row_offsets, int* 
     csr_f.close();
 }
 
+void transposed_csr_to_file(std::string file, int M, int N, int nz, int* row_offsets, int* column_indices, float* values){
+    ofstream csr_f;
+    csr_f.open("test_matrices/transposed/" + file.substr(18, file.size()));
+
+    csr_f << M << "\n";   // rows
+    csr_f << N << "\n";   // columns
+    csr_f << nz << "\n";  // number of non-zero elements
+
+    // row offsets
+    for (int i=0; i<M+1; i++){
+        csr_f << row_offsets[i] << ", ";
+    }
+    csr_f << "\n";
+
+    // columns indices
+    for (int i=0; i<nz; i++){
+        csr_f << column_indices[i] << ", ";
+    }
+    csr_f << "\n";
+
+    // values
+    for (int i=0; i<nz; i++){
+        csr_f << values[i] << ", ";
+    }
+    csr_f << "\n";
+
+    csr_f.close();
+}
+
 
 void to_coo(float** dense_matrix, int M, int N, int nz, int* row_indices, int* column_indices, float* values){
     int nz_idx = 0;

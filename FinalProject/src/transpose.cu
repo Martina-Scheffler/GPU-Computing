@@ -452,7 +452,7 @@ int main(int argc, char* argv[]){
         }
     }
 
-    if (atoi(argv[2] == 2)){
+    if (atoi(argv[1] == 2)){
         printf("Use COO format and own kernels.\n");
 
         // check which test matrix to use

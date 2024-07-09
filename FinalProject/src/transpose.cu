@@ -163,7 +163,7 @@ int main(int argc, char* argv[]){
             throw runtime_error("Please choose a test matrix");
         }
 
-        if (to_string([2]) == "all"){
+        if (to_string(argv[2]) == "all"){
             for (int i=1; i<11; i++){
                 printf("Transposing matrix %d\n", i);
                 transpose_cuSparse_CSR("test_matrices/csr/" + i + "_csr.csv");
@@ -171,7 +171,7 @@ int main(int argc, char* argv[]){
         }
         else {
             printf("Transposing matrix %d\n", atoi(argv[2]));
-            transpose_cuSparse_CSR("test_matrices/csr/" + argv[2] + "_csr.csv");
+            transpose_cuSparse_CSR("test_matrices/csr/" + atoi(argv[2]) + "_csr.csv");
         }
     }
     

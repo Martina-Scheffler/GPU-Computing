@@ -128,10 +128,26 @@ git clone https://github.com/Martina-Scheffler/GPU-Computing.git
 cd GPU-Computing/FinalProject/
 ```
 
-### Testing using DataSet 
-The matrices that can be used for testing and a description of them can be found in [`FinalProject/test_matrices/`](FinalProject/test_matrices/). 
-
 ### Run
 ```batch
 sbatch transpose_sparse_sbatch.sh
 ```
+will run the command `srun ./bin/transpose <startegy> <matrix>`, where the options for `<strategy> are:
+
+1. cuSPARSE CSR transpose by CSR-CSC conversion
+
+and the `<matrix>` parameter is either an integer from `1` to `10` specifying a desired test matrix, or `all` to evaluate all of them in a loop. The matrices that can be used for testing and a description of them can be found in [`FinalProject/test_matrices/`](FinalProject/test_matrices/). 
+
+### Evaluate
+After running, resulting transposed matrices are created in `test_matrices/tranposed/` and files for performance evaluation in `output/`. To copy to a machine with Python to evaluate:
+```bash
+scp name.surname@marzola.disi.unitn.it:~/GPU-Computing/FinalProject/test_matrices/transposed/* .
+```
+```bash
+scp name.surname@marzola.disi.unitn.it:~/GPU-Computing/FinalProject/output/* .
+```
+Correctness of the transposition can be checked using `scipy.sparse` by adjusting the paths at the top of `evaluation/test_csr_transpose.ipynb` and running it. The correct output at the bottom should be `True`.
+
+The effective bandwidth...
+
+

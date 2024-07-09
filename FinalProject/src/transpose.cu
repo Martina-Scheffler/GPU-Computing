@@ -72,9 +72,6 @@ void transpose_cuSparse_CSR(string file, string timing_file){
     void* buffer;
     cudaMalloc(&buffer, buffer_size);
 
-    // warmup to avoid timing startup 
-    warm_up_gpu<<<nBlocks, nThreads>>>();
-
     // start CUDA timer 
     cudaEventRecord(start, 0);
 

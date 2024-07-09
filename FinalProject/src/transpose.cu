@@ -180,7 +180,10 @@ void transpose_cuSparse_COO(string file){
 
     const int alpha = 1;
     const int beta = 0;
-    cusparseDnVecDescr_t vector = NULL;
+    cusparseDnVecDescr_t vector;
+    float* dev_vec_values;
+    cudaMalloc(&dev_vec_values, columns * sizeof(float));
+    cusparseCreateDnVec(&vector, columns, dev_vec_values, CUDA_R_32F);
 
     size_t buffer_size;
     cusparseSpMV_bufferSize(handle, CUSPARSE_OPERATION_TRANSPOSE, &alpha, sparse_matrix, vector, &beta, vector, 

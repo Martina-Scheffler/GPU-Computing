@@ -22,6 +22,65 @@ __global__ void warm_up_gpu(){
 }
 
 
+__global__ void transpose_COO(int* row_indices, int* column_indices, int nnz){
+    int idx = threadIdx.x;
+
+    while (idx < nnz){
+        swap(row_indices[idx], column_indices[idx]);
+        idx += blockDim.x;
+    }
+}
+
+
+void transpose_own_COO(string file){
+    // load COO from file
+    int rows, columns, nnz;
+    int *row_indices, *col_indices;
+    float* values;
+
+    coo_from_file(file, rows, columns, nnz, row_indices, col_indices, values);
+
+    // create arrays on device
+    int *dev_row_indices, *dev_col_indices;
+
+    // allocate memory on device
+    cudaMalloc(&dev_row_indices, nnz * sizeof(int));
+    cudaMalloc(&dev_col_indices, nnz * sizeof(int));
+
+    // copy entries to device
+    cudaMemcpy(dev_row_indices, row_indices, nnz * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_col_indices, col_indices, nnz * sizeof(int), cudaMemcpyHostToDevice);
+
+    // set grid and block size - TODO
+    dim3 nBlocks (1, 1, 1);
+    if (nnz < 1024){
+        dim3 nThreads (nnz, 1, 1);
+    }
+    else {
+        dim3 nThreads (1024, 1, 1);
+    }
+    
+    // invoke kernel
+    transpose_COO<<<nBlocks, nThreads>>>(dev_row_indices, dev_col_indices, nnz);
+
+    // copy back
+    cudaMemcpy(row_indices, dev_row_indices, nnz * sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(col_indices, dev_col_indices, nnz * sizeof(int), cudaMemcpyDeviceToHost);
+
+    // save result to file
+    transposed_coo_to_file(file, columns, rows, nnz, row_indices, col_indices, values);
+
+    // free device memory
+    cudaFree(dev_row_indices);
+    cudaFree(dev_col_indices);
+
+    // free host memory
+    free(row_indices);
+    free(col_indices);
+    free(values);
+}
+
+
 void transpose_cuSparse_CSR(string file, string timing_file){
     // file to save execution time for bandwidth analysis
     std::ofstream myfile;
@@ -82,9 +141,6 @@ void transpose_cuSparse_CSR(string file, string timing_file){
                             dev_tp_col_offsets, dev_tp_row_indices, CUDA_R_32F, CUSPARSE_ACTION_NUMERIC, 
                             CUSPARSE_INDEX_BASE_ZERO, CUSPARSE_CSR2CSC_ALG1, buffer);
     }
-
-    // synchronize - TODO: necessary?
-    cudaDeviceSynchronize();
 
     // stop CUDA timer
     cudaEventRecord(stop, 0);

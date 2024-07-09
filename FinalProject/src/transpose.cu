@@ -177,12 +177,15 @@ void transpose_cuSparse_COO(string file){
     // reserve necessary buffer space
     cusparseHandle_t handle;
     cusparseCreate(&handle);
+
     const int alpha = 1;
     const int beta = 0;
-    cusparseConstDnVecDescr_t vector = NULL;
+    cusparseConstDnVecDescr_t vec1 = NULL;
+    cusparseDnVecDescr_t vec2 = NULL;
+
     size_t buffer_size;
 
-    cusparseSpMV_bufferSize(handle, CUSPARSE_OPERATION_TRANSPOSE, alpha, sparse_matrix, vector, beta, vector, 
+    cusparseSpMV_bufferSize(handle, CUSPARSE_OPERATION_TRANSPOSE, &alpha, sparse_matrix, vec1, &beta, vec2, 
                             CUDA_R_32F, CUSPARSE_SPMV_COO_ALG1, &buffer_size);
 
     void* buffer;

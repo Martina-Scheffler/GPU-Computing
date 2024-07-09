@@ -20,5 +20,9 @@ make
 # clean after build
 rm ./bin/*.o
 
+# clean before run
+rm -rf output/
+mkdir output/
+
 # run
 srun ./bin/transpose 0 all

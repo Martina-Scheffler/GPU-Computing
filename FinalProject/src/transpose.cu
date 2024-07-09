@@ -22,7 +22,11 @@ __global__ void warm_up_gpu(){
 }
 
 
-void transpose_cuSparse_CSR(string file){
+void transpose_cuSparse_CSR(string file, string timing_file){
+    // file to save execution time for bandwidth analysis
+    std::ofstream myfile;
+	myfile.open(timing_file);
+
     // load CSR matrix from file
     int rows, columns, nnz;
     int *row_offsets, *col_indices;
@@ -44,6 +48,11 @@ void transpose_cuSparse_CSR(string file){
     cudaMemcpy(dev_col_indices, col_indices, nnz * sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(dev_values, values, nnz * sizeof(float), cudaMemcpyHostToDevice);
 
+    // Create CUDA events to use for timing
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+
     // reserve buffer space necessary for the transpose
     cusparseHandle_t handle;
     cusparseCreate(&handle);
@@ -55,18 +64,45 @@ void transpose_cuSparse_CSR(string file){
     cudaMalloc(&dev_tp_values, nnz * sizeof(float));
 
     size_t buffer_size;
-
     cusparseCsr2cscEx2_bufferSize(handle, rows, columns, nnz, dev_values, dev_row_offsets, dev_col_indices, 
                                     dev_tp_values, dev_tp_col_offsets, dev_tp_row_indices, CUDA_R_32F, 
                                     CUSPARSE_ACTION_NUMERIC, CUSPARSE_INDEX_BASE_ZERO, CUSPARSE_CSR2CSC_ALG1,
                                     &buffer_size); 
-                              
-    // transpose by converting from CSR to CSC
+
     void* buffer;
     cudaMalloc(&buffer, buffer_size);
-    cusparseCsr2cscEx2(handle, rows, columns, nnz, dev_values, dev_row_offsets, dev_col_indices, dev_tp_values, 
-                        dev_tp_col_offsets, dev_tp_row_indices, CUDA_R_32F, CUSPARSE_ACTION_NUMERIC, 
-                        CUSPARSE_INDEX_BASE_ZERO, CUSPARSE_CSR2CSC_ALG1, buffer);
+
+    // warmup to avoid timing startup 
+    warm_up_gpu<<<nBlocks, nThreads>>>();
+
+    // start CUDA timer 
+    cudaEventRecord(start, 0);
+
+    // run NUM_REPS times
+    for (int i=0; i<NUM_REPS; i++){
+        // transpose by converting from CSR to CSC
+        cusparseCsr2cscEx2(handle, rows, columns, nnz, dev_values, dev_row_offsets, dev_col_indices, dev_tp_values, 
+                            dev_tp_col_offsets, dev_tp_row_indices, CUDA_R_32F, CUSPARSE_ACTION_NUMERIC, 
+                            CUSPARSE_INDEX_BASE_ZERO, CUSPARSE_CSR2CSC_ALG1, buffer);
+    }
+
+    // synchronize - TODO: necessary?
+    cudaDeviceSynchronize();
+
+    // stop CUDA timer
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop); 
+
+    // Calculate elapsed time
+    float milliseconds = 0;
+    cudaEventElapsedTime(&milliseconds, start, stop);
+
+    // divide by NUM_REPS to get mean
+    milliseconds /= NUM_REPS;
+
+    // save execution time and buffer size to file
+    myfile << milliseconds << "\n";
+    myfile << buffer_size << "\n";
 
     // copy results back to host
     int *row_offsets_tp = (int*) malloc((columns+1) * sizeof(int));
@@ -79,6 +115,13 @@ void transpose_cuSparse_CSR(string file){
 
     // save transposed matrix to file
     transposed_csr_to_file(file, columns, rows, nnz, row_offsets_tp, col_indices_tp, values_tp);
+
+    // close file
+	myfile.close();
+
+    // free timer events
+    cudaEventDestroy(start);
+    cudaEventDestroy(stop);
 
     // destroy handle
     cusparseDestroy(handle);
@@ -167,12 +210,14 @@ int main(int argc, char* argv[]){
         if (argv2 == "all"){
             for (int i=1; i<11; i++){
                 printf("Transposing matrix %d\n", i);
-                transpose_cuSparse_CSR("test_matrices/csr/" + to_string(i) + "_csr.csv");
+                transpose_cuSparse_CSR("test_matrices/csr/" + to_string(i) + "_csr.csv", 
+                                        "output/csr_cusparse_" + to_string(i) + ".csv");
             }
         }
         else {
             printf("Transposing matrix %d\n", atoi(argv[2]));
-            transpose_cuSparse_CSR("test_matrices/csr/" + to_string(atoi(argv[2])) + "_csr.csv");
+            transpose_cuSparse_CSR("test_matrices/csr/" + to_string(atoi(argv[2])) + "_csr.csv",
+                                    "output/csr_cusparse_" + to_string(atoi(argv[2])) + ".csv");
         }
     }
     

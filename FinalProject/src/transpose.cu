@@ -36,6 +36,10 @@ __global__ void transpose_COO(int* row_indices, int* column_indices, int nnz){
     }
 }
 
+// __global__ void transpose_CSR(int* row_offsets, int* column_indices,  float* values){
+
+// }
+
 
 void transpose_own_COO(string file, string timing_file){
     // file to save execution time for bandwidth analysis
@@ -440,6 +444,30 @@ int main(int argc, char* argv[]){
             printf("Transposing matrix %d\n", atoi(argv[2]));
             transpose_cuSparse_COO("test_matrices/coo/" + to_string(atoi(argv[2])) + "_coo.csv");
         }
+    }
+
+    if (atoi(argv[2] == 2)){
+        printf("Use COO format and own kernels.\n");
+
+        // check which test matrix to use
+        if (argc < 3){
+            throw runtime_error("Please choose a test matrix");
+        }
+
+        string argv2 = argv[2];
+        if (argv2 == "all"){
+            for (int i=1; i<11; i++){
+                printf("Transposing matrix %d\n", i);
+                transpose_own_COO("test_matrices/coo/" + to_string(i) + "_coo.csv",
+                                    "output/coo_own_" + to_string(atoi(argv[2])) + ".csv");
+            }
+        }
+        else {
+            printf("Transposing matrix %d\n", atoi(argv[2]));
+            transpose_own_COO("test_matrices/coo/" + to_string(atoi(argv[2])) + "_coo.csv",
+                                "output/coo_own_" + to_string(atoi(argv[2])) + ".csv");
+        }
+        
     }
     
     return 0;

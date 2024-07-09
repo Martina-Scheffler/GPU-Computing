@@ -199,15 +199,15 @@ void transpose_cuSparse_COO(string file){
                     dense_matrix, &beta, dense_matrix, CUDA_R_32F, CUSPARSE_SPMM_COO_ALG1, buffer);
 
     // save values back into sparse matrix
-    cusparseDenseToSparse_bufferSize(handle, dense_matrix, sparse_matrix, CUSPARSE_DENSETOSPARSE_ALG_DEFAULT, buffer_size);
+    cusparseDenseToSparse_bufferSize(handle, dense_matrix, sparse_matrix, CUSPARSE_DENSETOSPARSE_ALG_DEFAULT, &buffer_size);
     void* buffer_convert;
     cudaMalloc(&buffer_convert, buffer_size);
     cusparseDenseToSparse_analysis(handle, dense_matrix, sparse_matrix, CUSPARSE_DENSETOSPARSE_ALG_DEFAULT, buffer_convert);
     cusparseDenseToSparse_convert(handle, dense_matrix, sparse_matrix, CUSPARSE_DENSETOSPARSE_ALG_DEFAULT, buffer_convert);
 
     // copy back to host
-    cusparseCooGet(sparse_matrix, rows, columns, nnz, &dev_row_indices, &dev_col_indices, &dev_values, 
-                    CUSPARSE_INDEX_32I, CUSPARSE_INDEX_BASE_ZERO, CUDA_R_32F);
+    cusparseCooGet(sparse_matrix, &rows, &columns, &nnz, &dev_row_indices, &dev_col_indices, &dev_values, 
+                    &CUSPARSE_INDEX_32I, &CUSPARSE_INDEX_BASE_ZERO, &CUDA_R_32F);
 
     cudaMemcpy(row_indices, dev_row_indices, nnz * sizeof(int), cudaMemcpyDeviceToHost);
     cudaMemcpy(col_indices, dev_col_indices, nnz * sizeof(int), cudaMemcpyDeviceToHost);

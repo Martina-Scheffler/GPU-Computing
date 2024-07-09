@@ -30,13 +30,6 @@ void transpose_cuSparse_CSR(string file){
 
     csr_from_file(file, rows, columns, nnz, row_offsets, col_indices, values);
 
-    // for (int i=0; i<rows+1; i++){
-    //     printf("%d\n", row_offsets[i]);
-    // }
-
-    // // create CSR matrix using cuSparse
-    // cusparseSpMatDescr_t sparse_matrix;
-
     // create arrays on device
     int *dev_row_offsets, *dev_col_indices;
     float* dev_values;
@@ -50,10 +43,6 @@ void transpose_cuSparse_CSR(string file){
     cudaMemcpy(dev_row_offsets, row_offsets, (rows+1) * sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(dev_col_indices, col_indices, nnz * sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(dev_values, values, nnz * sizeof(float), cudaMemcpyHostToDevice);
-    
-    // create CSR matrix
-    // cusparseCreateCsr(&sparse_matrix, rows, columns, nnz, dev_row_offsets, dev_col_indices, dev_values, 
-    //                     CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I, CUSPARSE_INDEX_BASE_ZERO, CUDA_R_32F);
 
     // reserve buffer space necessary for the transpose
     cusparseHandle_t handle;
@@ -71,17 +60,13 @@ void transpose_cuSparse_CSR(string file){
                                     dev_tp_values, dev_tp_col_offsets, dev_tp_row_indices, CUDA_R_32F, 
                                     CUSPARSE_ACTION_NUMERIC, CUSPARSE_INDEX_BASE_ZERO, CUSPARSE_CSR2CSC_ALG1,
                                     &buffer_size); 
-
-    cout << buffer_size << "\n"; 
                               
     // transpose by converting from CSR to CSC
     void* buffer;
     cudaMalloc(&buffer, buffer_size);
-    cusparseStatus_t result = cusparseCsr2cscEx2(handle, rows, columns, nnz, dev_values, dev_row_offsets, dev_col_indices, dev_tp_values, 
+    cusparseCsr2cscEx2(handle, rows, columns, nnz, dev_values, dev_row_offsets, dev_col_indices, dev_tp_values, 
                         dev_tp_col_offsets, dev_tp_row_indices, CUDA_R_32F, CUSPARSE_ACTION_NUMERIC, 
                         CUSPARSE_INDEX_BASE_ZERO, CUSPARSE_CSR2CSC_ALG1, buffer);
-
-    cout << result << "\n";
 
     // copy results back to host
     int *row_offsets_tp = (int*) malloc((columns+1) * sizeof(int));
@@ -92,15 +77,8 @@ void transpose_cuSparse_CSR(string file){
     cudaMemcpy(row_offsets_tp, dev_tp_col_offsets, (columns + 1) * sizeof(int), cudaMemcpyDeviceToHost);
     cudaMemcpy(values_tp, dev_tp_values, nnz * sizeof(float), cudaMemcpyDeviceToHost);
 
-    for (int i=0; i<nnz; i++){
-        printf("%f\n", values_tp[i]);
-    }
-
     // save transposed matrix to file
     transposed_csr_to_file(file, columns, rows, nnz, row_offsets_tp, col_indices_tp, values_tp);
-    
-    // // destroy matrix
-    // cusparseDestroySpMat(sparse_matrix);
 
     // destroy handle
     cusparseDestroy(handle);
@@ -125,7 +103,6 @@ void transpose_cuSparse_CSR(string file){
 
 
 void transpose_cuSparse_COO(string file){
-    cout << "Running cuSparse COO transpose" << "\n";
     // load COO matrix from file
     int rows, columns, nnz;
     int *row_indices, *col_indices;
@@ -166,32 +143,37 @@ void transpose_cuSparse_COO(string file){
     cudaFree(dev_row_indices);
     cudaFree(dev_col_indices);
     cudaFree(dev_values);
+
+    // free host memory 
+    free(row_indices);
+    free(col_indices);
+    free(values);
 }
 
 
 int main(int argc, char* argv[]){
-    // cout << "Matrix 0\n";
-    // transpose_cuSparse_CSR("test_matrices/csr/0_csr.csv");
-    // cout << "Matrix 1\n";
-    // transpose_cuSparse_CSR("test_matrices/csr/1_csr.csv");
-    // cout << "Matrix 2\n";
-    // transpose_cuSparse_CSR("test_matrices/csr/2_csr.csv");
-    cout << "Matrix 3\n";
-    transpose_cuSparse_CSR("test_matrices/csr/3_csr.csv");
-    // cout << "Matrix 4\n";
-    // transpose_cuSparse_CSR("test_matrices/csr/4_csr.csv");
-    // cout << "Matrix 5\n";
-    // transpose_cuSparse_CSR("test_matrices/csr/5_csr.csv");
-    // cout << "Matrix 6\n";
-    // transpose_cuSparse_CSR("test_matrices/csr/6_csr.csv");
-    // cout << "Matrix 7\n";
-    // transpose_cuSparse_CSR("test_matrices/csr/7_csr.csv");
-    // cout << "Matrix 8\n";
-    // transpose_cuSparse_CSR("test_matrices/csr/8_csr.csv");
-    // cout << "Matrix 9\n";
-    // transpose_cuSparse_CSR("test_matrices/csr/9_csr.csv");
-    // cout << "Matrix 10\n";
-    // transpose_cuSparse_CSR("test_matrices/csr/10_csr.csv");
+    if (argc < 2){
+        throw runtime_error("Please choose a strategy");
+    }
+    if (atoi(argv[1]) == 0){
+        printf("Use CSR format and the cuSPARSE library.\n");
+
+        // check which test matrix to use
+        if (argc < 3){
+            throw runtime_error("Please choose a test matrix");
+        }
+
+        if (argv[2] == 'all'){
+            for (int i=1; i<11; i++){
+                printf("Transposing matrix %d\n", i);
+                transpose_cuSparse_CSR("test_matrices/csr/" + to_string(i) + "_csr.csv");
+            }
+        }
+        else {
+            printf("Transposing matrix %d\n", atoi(argv[2]));
+            transpose_cuSparse_CSR("test_matrices/csr/" + atoi(argv[2]) + "_csr.csv");
+        }
+    }
     
     return 0;
 }

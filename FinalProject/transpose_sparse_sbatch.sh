@@ -21,4 +21,4 @@ make
 rm ./bin/*.o
 
 # run
-srun ./bin/transpose
+srun ./bin/transpose 0 'all'

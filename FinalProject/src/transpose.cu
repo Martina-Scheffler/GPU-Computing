@@ -180,21 +180,22 @@ void transpose_cuSparse_COO(string file){
 
     const int alpha = 1;
     const int beta = 0;
-    cusparseConstDnVecDescr_t vec1 = NULL;
-    cusparseDnVecDescr_t vec2 = NULL;
+    cusparseDnVecDescr_t vector = NULL;
 
     size_t buffer_size;
-
-    cusparseSpMV_bufferSize(handle, CUSPARSE_OPERATION_TRANSPOSE, &alpha, sparse_matrix, vec1, &beta, vec2, 
+    cusparseSpMV_bufferSize(handle, CUSPARSE_OPERATION_TRANSPOSE, &alpha, sparse_matrix, vector, &beta, vector, 
                             CUDA_R_32F, CUSPARSE_SPMV_COO_ALG1, &buffer_size);
 
     void* buffer;
     cudaMalloc(&buffer, buffer_size);
                         
     // preprocess
-
-
-    // transpose 
+    cusparseSpMV_preprocess(handle, CUSPARSE_OPERATION_TRANSPOSE, &alpha, sparse_matrix, vector, &beta, vector, 
+                            CUDA_R_32F, CUSPARSE_SPMV_COO_ALG1, buffer);
+                        
+    // transpose
+    cusparseSpMV(handle, CUSPARSE_OPERATION_TRANSPOSE, &alpha, sparse_matrix, vector, &beta, vector, CUDA_R_32F,
+                CUSPARSE_SPMV_COO_ALG1, buffer);
 
     // copy back
 

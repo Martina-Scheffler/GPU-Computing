@@ -76,7 +76,7 @@ void transpose_own_COO(string file, string timing_file){
 
         if (i == 1){
             // test diferent numbers of threads
-            for (int j=2; j<=1024; j*2){
+            for (int j=2; j<=1024; j*=2){
                 dim3 nThreads(j, 1, 1);
 
                 // start CUDA timer 

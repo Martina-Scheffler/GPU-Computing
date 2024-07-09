@@ -174,6 +174,23 @@ void transpose_cuSparse_COO(string file){
     cusparseCreateCoo(&sparse_matrix, rows, columns, nnz, dev_row_indices, dev_col_indices, dev_values, CUSPARSE_INDEX_32I, 
                         CUSPARSE_INDEX_BASE_ZERO, CUDA_R_32F);
     
+    // reserve necessary buffer space
+    cusparseHandle_t handle;
+    cusparseCreate(&handle);
+    const int alpha = 1;
+    const int beta = 0;
+    cusparseConstDnVecDescr_t vector = NULL;
+    size_t buffer_size;
+
+    cusparseSpMV_bufferSize(handle, CUSPARSE_OPERATION_TRANSPOSE, alpha, sparse_matrix, vector, beta, vector, 
+                            CUDA_R_32F, CUSPARSE_SPMV_COO_ALG1, &buffer_size);
+
+    void* buffer;
+    cudaMalloc(&buffer, buffer_size);
+                        
+    // preprocess
+
+
     // transpose 
 
     // copy back
@@ -181,6 +198,9 @@ void transpose_cuSparse_COO(string file){
 
     // destroy matrix
     cusparseDestroySpMat(sparse_matrix);
+
+    // destroy handle
+    cusparseDestroy(handle);
 
     // free device memory
     cudaFree(dev_row_indices);
@@ -198,6 +218,8 @@ int main(int argc, char* argv[]){
     if (argc < 2){
         throw runtime_error("Please choose a strategy");
     }
+
+    // Strategy 0: cuSPARSE CSR
     if (atoi(argv[1]) == 0){
         printf("Use CSR format and the cuSPARSE library.\n");
 
@@ -218,6 +240,28 @@ int main(int argc, char* argv[]){
             printf("Transposing matrix %d\n", atoi(argv[2]));
             transpose_cuSparse_CSR("test_matrices/csr/" + to_string(atoi(argv[2])) + "_csr.csv",
                                     "output/csr_cusparse_" + to_string(atoi(argv[2])) + ".csv");
+        }
+    }
+
+    // Strategy 1: cuSPARSE COO
+    if (atoi(argv[1]) == 1){
+        printf("Use COO format and the cuSPARSE library.\n");
+
+        // check which test matrix to use
+        if (argc < 3){
+            throw runtime_error("Please choose a test matrix");
+        }
+
+        string argv2 = argv[2];
+        if (argv2 == "all"){
+            for (int i=1; i<11; i++){
+                printf("Transposing matrix %d\n", i);
+                transpose_cuSparse_COO("test_matrices/coo/" + to_string(i) + "_coo.csv");
+            }
+        }
+        else {
+            printf("Transposing matrix %d\n", atoi(argv[2]));
+            transpose_cuSparse_COO("test_matrices/coo/" + to_string(atoi(argv[2])) + "_coo.csv");
         }
     }
     

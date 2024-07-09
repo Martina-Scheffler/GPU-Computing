@@ -37,7 +37,11 @@ __global__ void transpose_COO(int* row_indices, int* column_indices, int nnz){
 }
 
 
-void transpose_own_COO(string file){
+void transpose_own_COO(string file, string timing_file){
+    // file to save execution time for bandwidth analysis
+    std::ofstream myfile;
+	myfile.open(timing_file);
+
     // load COO from file
     int rows, columns, nnz;
     int *row_indices, *col_indices;
@@ -61,40 +65,84 @@ void transpose_own_COO(string file){
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
 
-    // set grid and block size
+    // try different grid and block sizes and find fastest
     float min_time = INFINITY;
     int min_blocks;
+    int min_threads;
     int possible_blocks = ceil(nnz / 1024);
     for (int i=1; i<=possible_blocks; i++){
         dim3 nBlocks(i, 1, 1);
-        dim3 nThreads(1024, 1, 1);
 
-        // start CUDA timer 
-        cudaEventRecord(start, 0);
+        if (i == 1){
+            // test diferent numbers of threads
+            for (int j=2; j<=1024; j*2){
+                dim3 nThreads(j, 1, 1);
 
-        // invoke kernel NUM_REPS times 
-        for (int j=0; j<NUM_REPS; j++){
-            transpose_COO<<<nBlocks, nThreads>>>(dev_row_indices, dev_col_indices, nnz);
+                // start CUDA timer 
+                cudaEventRecord(start, 0);
+
+                // invoke kernel NUM_REPS times 
+                for (int k=0; k<NUM_REPS; k++){
+                    transpose_COO<<<nBlocks, nThreads>>>(dev_row_indices, dev_col_indices, nnz);
+                }
+
+                // stop CUDA timer
+                cudaEventRecord(stop, 0);
+                cudaEventSynchronize(stop); 
+
+                // Calculate elapsed time
+                float milliseconds = 0;
+                cudaEventElapsedTime(&milliseconds, start, stop);
+
+                // divide by NUM_REPS to get mean
+                milliseconds /= NUM_REPS;
+
+                if (milliseconds < min_time){
+                    min_time = milliseconds;
+                    min_blocks = i;
+                    min_threads = j;
+                }
+            }
         }
+        else {
+            dim3 nThreads(1024, 1, 1);
 
-        // stop CUDA timer
-        cudaEventRecord(stop, 0);
-        cudaEventSynchronize(stop); 
+            // start CUDA timer 
+            cudaEventRecord(start, 0);
 
-        // Calculate elapsed time
-        float milliseconds = 0;
-        cudaEventElapsedTime(&milliseconds, start, stop);
+            // invoke kernel NUM_REPS times 
+            for (int k=0; k<NUM_REPS; k++){
+                transpose_COO<<<nBlocks, nThreads>>>(dev_row_indices, dev_col_indices, nnz);
+            }
 
-        // divide by NUM_REPS to get mean
-        milliseconds /= NUM_REPS;
+            // stop CUDA timer
+            cudaEventRecord(stop, 0);
+            cudaEventSynchronize(stop); 
 
-        if (milliseconds < min_time){
-            min_time = milliseconds;
-            min_blocks = i;
+            // Calculate elapsed time
+            float milliseconds = 0;
+            cudaEventElapsedTime(&milliseconds, start, stop);
+
+            // divide by NUM_REPS to get mean
+            milliseconds /= NUM_REPS;
+
+            if (milliseconds < min_time){
+                min_time = milliseconds;
+                min_blocks = i;
+                min_threads = 1024;
+            }
         }
     }
     // find best configuration
-    printf("Best block number: %d\n", min_blocks);
+    printf("Best configuration: %d, %d\n", min_blocks, min_threads);
+
+    // save execution time and configuration to file
+    myfile << milliseconds << "\n";
+    myfile << rows << "\n";
+    myfile << columns << "\n";
+    myfile << nnz << "\n";
+    myfile << min_blocks << "\n";
+    myfile << min_threads << "\n";
 
     // copy back
     cudaMemcpy(row_indices, dev_row_indices, nnz * sizeof(int), cudaMemcpyDeviceToHost);
@@ -103,6 +151,9 @@ void transpose_own_COO(string file){
     // save result to file
     transposed_coo_to_file(file, columns, rows, nnz, row_indices, col_indices, values);
 
+    // close file
+	myfile.close();
+    
     // free device memory
     cudaFree(dev_row_indices);
     cudaFree(dev_col_indices);

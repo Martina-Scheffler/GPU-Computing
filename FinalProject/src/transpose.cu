@@ -24,9 +24,14 @@ __global__ void warm_up_gpu(){
 
 __global__ void transpose_COO(int* row_indices, int* column_indices, int nnz){
     int idx = threadIdx.x;
+    int tmp;
 
     while (idx < nnz){
-        swap(row_indices[idx], column_indices[idx]);
+        // swap row and columns
+        tmp = row_indices[idx];
+        row_indices[idx] = column_indices[idx];
+        column_indices[idx] = tmp;
+        
         idx += blockDim.x;
     }
 }

@@ -23,7 +23,7 @@ __global__ void warm_up_gpu(){
 
 
 __global__ void transpose_COO(int* row_indices, int* column_indices, int nnz){
-    int idx = threadIdx.x;
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int tmp;
 
     while (idx < nnz){
@@ -32,7 +32,7 @@ __global__ void transpose_COO(int* row_indices, int* column_indices, int nnz){
         row_indices[idx] = column_indices[idx];
         column_indices[idx] = tmp;
         
-        idx += blockDim.x;
+        idx += gridDim.x * blockDim.x;
     }
 }
 
@@ -56,16 +56,45 @@ void transpose_own_COO(string file){
     cudaMemcpy(dev_row_indices, row_indices, nnz * sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(dev_col_indices, col_indices, nnz * sizeof(int), cudaMemcpyHostToDevice);
 
-    // set grid and block size - TODO
-    dim3 nBlocks (1, 1, 1);
-    int threads_x = nnz;
-    if (nnz > 1024){
-        threads_x = 1024;
+    // Create CUDA events to use for timing
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+
+    // set grid and block size
+    float min_time = INFINITY;
+    int min_blocks;
+    int possible_blocks = ceil(nnz / 1024);
+    for (int i=1; i<=possible_blocks; i++){
+        dim3 nBlocks(i, 1, 1);
+        dim3 nThreads(1024, 1, 1);
+
+        // start CUDA timer 
+        cudaEventRecord(start, 0);
+
+        // invoke kernel NUM_REPS times 
+        for (int j=0; j<NUM_REPS; j++){
+            transpose_COO<<<nBlocks, nThreads>>>(dev_row_indices, dev_col_indices, nnz);
+        }
+
+        // stop CUDA timer
+        cudaEventRecord(stop, 0);
+        cudaEventSynchronize(stop); 
+
+        // Calculate elapsed time
+        float milliseconds = 0;
+        cudaEventElapsedTime(&milliseconds, start, stop);
+
+        // divide by NUM_REPS to get mean
+        milliseconds /= NUM_REPS;
+
+        if (milliseconds < min_time){
+            min_time = milliseconds;
+            min_blocks = i;
+        }
     }
-    dim3 nThreads (threads_x, 1, 1);
-    
-    // invoke kernel
-    transpose_COO<<<nBlocks, nThreads>>>(dev_row_indices, dev_col_indices, nnz);
+    // find best configuration
+    printf("Best block number: %d\n", min_blocks);
 
     // copy back
     cudaMemcpy(row_indices, dev_row_indices, nnz * sizeof(int), cudaMemcpyDeviceToHost);
@@ -82,6 +111,10 @@ void transpose_own_COO(string file){
     free(row_indices);
     free(col_indices);
     free(values);
+
+    // free timer events
+    cudaEventDestroy(start);
+    cudaEventDestroy(stop);
 }
 
 

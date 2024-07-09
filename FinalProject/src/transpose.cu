@@ -45,7 +45,7 @@ __global__ void CSR_2_COO(int* row_offsets, int* row_indices, int rows){
         // recreate row indices from offset
         num_elements_in_row = row_offsets[idx + 1] - row_offsets[idx];
 
-        for (int i=0; i<num_elements_in_row){
+        for (int i=0; i<num_elements_in_row; i++){
             row_indices[row_offsets[idx] + i] = idx;
         }
 
@@ -69,7 +69,7 @@ __global__ void CSR2CSC(int rows, int columns, int nnz, int* num_elements_in_col
     __syncthreads();
 
     // sum up the values to find column offsets
-    int idx = original_idx;
+    idx = original_idx;
     while (idx < columns){
         for (int i=0; i<idx+1; i++){
             column_offsets_csc[idx + 1] += num_elements_in_col[i];
@@ -82,12 +82,14 @@ __global__ void CSR2CSC(int rows, int columns, int nnz, int* num_elements_in_col
     // insert row indices and values in the correct order
     idx = original_idx;
     int num_values;
+    int col;
+    
     while (idx < rows){
-        num_values = row_offsets_csr[i+1] - row_offsets_csr[i];
+        num_values = row_offsets_csr[idx+1] - row_offsets_csr[idx];
         for (int i=0; i<num_values; i++){
-            col = column_indices_csr[row_offsets_csr[i] + j];
-            row_indices_csc[column_offsets_csc[col] + values_stored_from_col[col]] = i;
-            values_csc[column_offsets_csc[col] + values_stored_from_col[col]] = values_csr[row_offsets_csr[i] + j];
+            col = column_indices_csr[row_offsets_csr[idx] + i];
+            row_indices_csc[column_offsets_csc[col] + values_stored_from_col[col]] = idx;
+            values_csc[column_offsets_csc[col] + values_stored_from_col[col]] = values_csr[row_offsets_csr[idx] + i];
             values_stored_from_col[col] += 1;
         }
         idx += blockDim.x;

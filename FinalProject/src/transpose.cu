@@ -53,12 +53,11 @@ void transpose_own_COO(string file){
 
     // set grid and block size - TODO
     dim3 nBlocks (1, 1, 1);
-    if (nnz < 1024){
-        dim3 nThreads (nnz, 1, 1);
+    int threads_x = nnz;
+    if (nnz > 1024){
+        threads_x = 1024;
     }
-    else {
-        dim3 nThreads (1024, 1, 1);
-    }
+    dim3 nThreads (threads_x, 1, 1);
     
     // invoke kernel
     transpose_COO<<<nBlocks, nThreads>>>(dev_row_indices, dev_col_indices, nnz);

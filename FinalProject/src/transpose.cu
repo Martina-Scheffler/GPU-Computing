@@ -209,7 +209,8 @@ void transpose_cuSparse_COO(string file){
     cusparseIndexType_t index_type = CUSPARSE_INDEX_32I;
     cusparseIndexBase_t index_base = CUSPARSE_INDEX_BASE_ZERO;
     cudaDataType data_type = CUDA_R_32F;
-    cusparseCooGet(sparse_matrix, (int64_t*)&rows, (int64_t*)&columns, (int64_t*)&nnz, &dev_row_indices, &dev_col_indices, &dev_values, 
+    cusparseCooGet(sparse_matrix, (int64_t*)&rows, (int64_t*)&columns, (int64_t*)&nnz, 
+                    (void **)&dev_row_indices, (void **)&dev_col_indices, (void **)&dev_values, 
                     &index_type, &index_base, &data_type);
 
     cudaMemcpy(row_indices, dev_row_indices, nnz * sizeof(int), cudaMemcpyDeviceToHost);

@@ -91,6 +91,9 @@ void transpose_own_COO(string file, string timing_file){
                     transpose_COO<<<nBlocks, nThreads>>>(dev_row_indices, dev_col_indices, nnz);
                 }
 
+                // synchronize
+                cudaDeviceSynchronize();
+
                 // stop CUDA timer
                 cudaEventRecord(stop, 0);
                 cudaEventSynchronize(stop); 
@@ -119,6 +122,9 @@ void transpose_own_COO(string file, string timing_file){
             for (int k=0; k<NUM_REPS; k++){
                 transpose_COO<<<nBlocks, nThreads>>>(dev_row_indices, dev_col_indices, nnz);
             }
+
+            // synchronize
+            cudaDeviceSynchronize();
 
             // stop CUDA timer
             cudaEventRecord(stop, 0);

@@ -142,6 +142,36 @@ void coo_to_file(const char* file, int M, int N, int nz, int*& row_indices, int*
 }
 
 
+void transposed_coo_to_file(std::string file, int M, int N, int nz, int*& row_indices, int*& column_indices, float*& values){
+    ofstream coo_f;
+    coo_f.open("test_matrices/transposed/" + file.substr(18, file.size()));
+
+    coo_f << M << "\n";   // rows
+    coo_f << N << "\n";   // columns
+    coo_f << nz << "\n";  // number of non-zero elements
+
+    // row offsets
+    for (int i=0; i<nz; i++){
+        coo_f << row_indices[i] << ", ";
+    }
+    coo_f << "\n";
+
+    // columns indices
+    for (int i=0; i<nz; i++){
+        coo_f << column_indices[i] << ", ";
+    }
+    coo_f << "\n";
+
+    // values
+    for (int i=0; i<nz; i++){
+        coo_f << values[i] << ", ";
+    }
+    coo_f << "\n";
+
+    coo_f.close();
+}
+
+
 void convert_mtx_to_file(const char* file){
     // open file
     FILE *f;

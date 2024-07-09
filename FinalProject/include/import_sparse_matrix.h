@@ -12,5 +12,6 @@ void coo_from_file(std::string file, int &rows, int &cols, int &nnz, int*& row_i
 void csr_from_file(std::string file, int &rows, int &cols, int &nnz, int*& row_offsets, int*& col_indices, float*& values);
 
 void transposed_csr_to_file(std::string file, int M, int N, int nz, int*& row_offsets, int*& column_indices, float*& values);
+void transposed_coo_to_file(std::string file, int M, int N, int nz, int*& row_indices, int*& column_indices, float*& values);
 
 #endif

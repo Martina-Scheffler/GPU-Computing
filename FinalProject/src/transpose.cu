@@ -131,6 +131,8 @@ void transpose_cuSparse_CSR(string file, string timing_file){
     cudaFree(dev_col_indices);
     cudaFree(dev_values);
 
+    cudaFree(buffer);
+
     cudaFree(dev_tp_row_indices);
     cudaFree(dev_tp_col_offsets);
     cudaFree(dev_tp_values);
@@ -180,31 +182,43 @@ void transpose_cuSparse_COO(string file){
 
     const int alpha = 1;
     const int beta = 0;
-    cusparseDnVecDescr_t vector;
-    float* dev_vec_values;
-    cudaMalloc(&dev_vec_values, columns * sizeof(float));
-    cusparseCreateDnVec(&vector, columns, dev_vec_values, CUDA_R_32F);
+    cusparseDnMatDescr_t dense_matrix;
+    float* dev_dmat_values;
+    cudaMalloc(&dev_dmat_values, rows * columns * sizeof(float));
+    cusparseCreateDnMat(&dense_matrix, rows, columns, rows, dev_dmat_values, CUDA_R_32F, CUSPARSE_ORDER_ROW);
 
     size_t buffer_size;
-    cusparseSpMV_bufferSize(handle, CUSPARSE_OPERATION_TRANSPOSE, &alpha, sparse_matrix, vector, &beta, vector, 
-                            CUDA_R_32F, CUSPARSE_SPMV_COO_ALG1, &buffer_size);
-
+    cusparseSpMM_bufferSize(handle, CUSPARSE_OPERATION_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE, &alpha, 
+                            sparse_matrix, dense_matrix, &beta, dense_matrix, CUDA_R_32F, CUSPARSE_SPMM_COO_ALG1, 
+                            &buffer_size);
     void* buffer;
     cudaMalloc(&buffer, buffer_size);
-                        
-    // // preprocess
-    // cusparseSpMV_preprocess(handle, CUSPARSE_OPERATION_TRANSPOSE, &alpha, sparse_matrix, vector, &beta, vector, 
-    //                         CUDA_R_32F, CUSPARSE_SPMV_COO_ALG1, buffer);
-                        
+
     // transpose
-    cusparseSpMV(handle, CUSPARSE_OPERATION_TRANSPOSE, &alpha, sparse_matrix, vector, &beta, vector, CUDA_R_32F,
-                CUSPARSE_SPMV_COO_ALG1, buffer);
+    cusparseSpMM(handle, CUSPARSE_OPERATION_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE, &alpha, sparse_matrix, 
+                    dense_matrix, &beta, dense_matrix, CUDA_R_32F, CUSPARSE_SPMM_COO_ALG1, buffer);
 
-    // copy back
+    // save values back into sparse matrix
+    cusparseDenseToSparse_bufferSize(handle, dense_matrix, sparse_matrix, CUSPARSE_DENSETOSPARSE_ALG_DEFAULT, buffer_size);
+    void* buffer_convert;
+    cudaMalloc(&buffer_convert, buffer_size);
+    cusparseDenseToSparse_analysis(handle, dense_matrix, sparse_matrix, CUSPARSE_DENSETOSPARSE_ALG_DEFAULT, buffer_convert);
+    cusparseDenseToSparse_convert(handle, dense_matrix, sparse_matrix, CUSPARSE_DENSETOSPARSE_ALG_DEFAULT, buffer_convert);
 
+    // copy back to host
+    cusparseCooGet(sparse_matrix, rows, columns, nnz, &dev_row_indices, &dev_col_indices, &dev_values, 
+                    CUSPARSE_INDEX_32I, CUSPARSE_INDEX_BASE_ZERO, CUDA_R_32F);
+
+    cudaMemcpy(row_indices, dev_row_indices, nnz * sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(col_indices, dev_col_indices, nnz * sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(values, dev_values, nnz * sizeof(float), cudaMemcpyDeviceToHost);
+               
+    // write transposed matrix to file
+    transposed_coo_to_file(file, columns, rows, nnz, row_indices, col_indices, values);                            
 
     // destroy matrix
     cusparseDestroySpMat(sparse_matrix);
+    cuspareseDestroyDnMat(dense_matrix);
 
     // destroy handle
     cusparseDestroy(handle);
@@ -213,6 +227,9 @@ void transpose_cuSparse_COO(string file){
     cudaFree(dev_row_indices);
     cudaFree(dev_col_indices);
     cudaFree(dev_values);
+    cudaFree(buffer);
+    cudaFree(dev_dmat_values);
+    cudaFree(buffer_convert);
 
     // free host memory 
     free(row_indices);

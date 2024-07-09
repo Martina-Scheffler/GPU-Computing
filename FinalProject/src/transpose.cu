@@ -70,6 +70,7 @@ void transpose_own_COO(string file, string timing_file){
     int min_blocks;
     int min_threads;
     int possible_blocks = ceil(nnz / 1024);
+    float milliseconds;
     for (int i=1; i<=possible_blocks; i++){
         dim3 nBlocks(i, 1, 1);
 
@@ -91,7 +92,7 @@ void transpose_own_COO(string file, string timing_file){
                 cudaEventSynchronize(stop); 
 
                 // Calculate elapsed time
-                float milliseconds = 0;
+                milliseconds = 0;
                 cudaEventElapsedTime(&milliseconds, start, stop);
 
                 // divide by NUM_REPS to get mean
@@ -120,7 +121,7 @@ void transpose_own_COO(string file, string timing_file){
             cudaEventSynchronize(stop); 
 
             // Calculate elapsed time
-            float milliseconds = 0;
+            milliseconds = 0;
             cudaEventElapsedTime(&milliseconds, start, stop);
 
             // divide by NUM_REPS to get mean
@@ -153,7 +154,7 @@ void transpose_own_COO(string file, string timing_file){
 
     // close file
 	myfile.close();
-    
+
     // free device memory
     cudaFree(dev_row_indices);
     cudaFree(dev_col_indices);

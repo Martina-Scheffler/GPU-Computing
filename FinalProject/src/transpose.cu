@@ -206,8 +206,11 @@ void transpose_cuSparse_COO(string file){
     cusparseDenseToSparse_convert(handle, dense_matrix, sparse_matrix, CUSPARSE_DENSETOSPARSE_ALG_DEFAULT, buffer_convert);
 
     // copy back to host
-    cusparseCooGet(sparse_matrix, &rows, &columns, &nnz, &dev_row_indices, &dev_col_indices, &dev_values, 
-                    &CUSPARSE_INDEX_32I, &CUSPARSE_INDEX_BASE_ZERO, &CUDA_R_32F);
+    cusparseIndexType_t index_type = CUSPARSE_INDEX_32I;
+    cusparseIndexBase_t index_base = CUSPARSE_INDEX_BASE_ZERO;
+    cudaDataType data_type = CUDA_R_32F;
+    cusparseCooGet(sparse_matrix, (int64_t*)&rows, (int64_t*)&columns, (int64_t*)&nnz, &dev_row_indices, &dev_col_indices, &dev_values, 
+                    &index_type, &index_base, &data_type);
 
     cudaMemcpy(row_indices, dev_row_indices, nnz * sizeof(int), cudaMemcpyDeviceToHost);
     cudaMemcpy(col_indices, dev_col_indices, nnz * sizeof(int), cudaMemcpyDeviceToHost);
@@ -218,7 +221,7 @@ void transpose_cuSparse_COO(string file){
 
     // destroy matrix
     cusparseDestroySpMat(sparse_matrix);
-    cuspareseDestroyDnMat(dense_matrix);
+    cusparseDestroyDnMat(dense_matrix);
 
     // destroy handle
     cusparseDestroy(handle);

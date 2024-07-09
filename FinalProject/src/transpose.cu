@@ -99,6 +99,9 @@ void transpose_cuSparse_CSR(string file, string timing_file){
 
     // save execution time and buffer size to file
     myfile << milliseconds << "\n";
+    myfile << rows << "\n";
+    myfile << columns << "\n";
+    myfile << nnz << "\n";
     myfile << buffer_size << "\n";
 
     // copy results back to host

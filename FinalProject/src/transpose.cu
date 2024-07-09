@@ -192,9 +192,9 @@ void transpose_cuSparse_COO(string file){
     void* buffer;
     cudaMalloc(&buffer, buffer_size);
                         
-    // preprocess
-    cusparseSpMV_preprocess(handle, CUSPARSE_OPERATION_TRANSPOSE, &alpha, sparse_matrix, vector, &beta, vector, 
-                            CUDA_R_32F, CUSPARSE_SPMV_COO_ALG1, buffer);
+    // // preprocess
+    // cusparseSpMV_preprocess(handle, CUSPARSE_OPERATION_TRANSPOSE, &alpha, sparse_matrix, vector, &beta, vector, 
+    //                         CUDA_R_32F, CUSPARSE_SPMV_COO_ALG1, buffer);
                         
     // transpose
     cusparseSpMV(handle, CUSPARSE_OPERATION_TRANSPOSE, &alpha, sparse_matrix, vector, &beta, vector, CUDA_R_32F,

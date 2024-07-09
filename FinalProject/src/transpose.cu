@@ -36,9 +36,161 @@ __global__ void transpose_COO(int* row_indices, int* column_indices, int nnz){
     }
 }
 
-// __global__ void transpose_CSR(int* row_offsets, int* column_indices,  float* values){
 
-// }
+__global__ void CSR_2_COO(int* row_offsets, int* row_indices, int rows){
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int num_elements_in_row;
+
+    while (idx < rows){
+        // recreate row indices from offset
+        num_elements_in_row = row_offsets[idx + 1] - row_offsets[idx];
+
+        for (int i=0; i<num_elements_in_row){
+            row_indices[row_offsets[idx] + i] = idx;
+        }
+
+        idx += blockDim.x;
+    }
+}
+
+__global__ void CSR2CSC(int rows, int columns, int nnz, int* num_elements_in_col, 
+                        int* row_offsets_csr, int* column_indices_csr, float* values_csr,
+                        int* row_indices_csc, int* column_offsets_csc,  float* values_csc, 
+                        int* values_stored_from_col){
+    int original_idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int idx = original_idx;
+
+    // count number of non-zero elements per column
+    while (idx < nnz){
+        num_elements_in_col[column_indices_csr[idx]] += 1;
+        idx += blockDim.x;
+    }
+
+    __syncthreads();
+
+    // sum up the values to find column offsets
+    int idx = original_idx;
+    while (idx < columns){
+        for (int i=0; i<idx+1; i++){
+            column_offsets_csc[idx + 1] += num_elements_in_col[i];
+        }
+        idx += blockDim.x;
+    }
+
+    __syncthreads();
+
+    // insert row indices and values in the correct order
+    idx = original_idx;
+    int num_values;
+    while (idx < rows){
+        num_values = row_offsets_csr[i+1] - row_offsets_csr[i];
+        for (int i=0; i<num_values; i++){
+            col = column_indices_csr[row_offsets_csr[i] + j];
+            row_indices_csc[column_offsets_csc[col] + values_stored_from_col[col]] = i;
+            values_csc[column_offsets_csc[col] + values_stored_from_col[col]] = values_csr[row_offsets_csr[i] + j];
+            values_stored_from_col[col] += 1;
+        }
+        idx += blockDim.x;
+    }
+}
+
+
+void transpose_own_CSR(string file){
+    // load CSR matrix from file
+    int rows, columns, nnz;
+    int *row_offsets, *col_indices;
+    float* values;
+
+    csr_from_file(file, rows, columns, nnz, row_offsets, col_indices, values);
+
+    // create arrays on device
+    int *dev_row_offsets_csr, *dev_col_indices_csr;
+    float* dev_values_csr;
+
+    // allocate memory on device
+    cudaMalloc(&dev_row_offsets_csr, (rows+1) * sizeof(int));
+    cudaMalloc(&dev_col_indices_csr, nnz * sizeof(int));
+    cudaMalloc(&dev_values_csr,  nnz * sizeof(float));
+
+    // copy entries to device
+    cudaMemcpy(dev_row_offsets_csr, row_offsets, (rows+1) * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_col_indices_csr, col_indices, nnz * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_values_csr, values, nnz * sizeof(float), cudaMemcpyHostToDevice);
+
+    // create necessary buffer arrays and copy to device
+    int *num_elements_in_col = (int*) malloc(columns * sizeof(int));
+    int *values_stored_from_col = (int*) malloc(columns * sizeof(int));
+    int *column_offsets_csc = (int*) malloc((columns + 1) * sizeof(int));
+
+    for (int i=0; i<columns; i++){
+        num_elements_in_col[i] = 0;
+        values_stored_from_col[i] = 0;
+        column_offsets_csc[i] = 0;
+    }
+    column_offsets_csc[columns] = 0;
+
+    // allocate memory on device
+    int *dev_num_elements_in_col, *dev_values_stored_from_col, *dev_column_offsets_csc, *dev_row_indices_csc;
+    float* dev_values_csc;
+
+    cudaMalloc(&dev_num_elements_in_col, columns * sizeof(int));
+    cudaMalloc(&dev_values_stored_from_col, columns * sizeof(int));
+    cudaMalloc(&dev_column_offsets_csc, (columns+1) * sizeof(int));
+    cudaMalloc(&dev_row_indices_csc, nnz * sizeof(int));
+    cudaMalloc(&dev_values_csc, nnz * sizeof(float));
+
+    // copy
+    cudaMemcpy(dev_num_elements_in_col, num_elements_in_col, columns * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_values_stored_from_col, values_stored_from_col, columns * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_column_offsets_csc, column_offsets_csc, (columns+1) * sizeof(int), cudaMemcpyHostToDevice);
+
+    // create blocks and threads
+    dim3 nBlocks(1, 1, 1);
+    dim3 nThreads(1024, 1, 1);
+
+    // call kernel
+    CSR2CSC<<<nBlocks, nThreads>>>(rows, columns, nnz, dev_num_elements_in_col, dev_row_offsets_csr, 
+                                    dev_col_indices_csr, dev_values_csr, dev_row_indices_csc, dev_column_offsets_csc,
+                                    dev_values_csc, dev_values_stored_from_col);
+    
+    // synchronize
+    cudaDeviceSynchronize();
+
+    // copy results back to host
+    int *row_offsets_tp = (int*) malloc((columns+1) * sizeof(int));
+    int *col_indices_tp = (int*) malloc(nnz * sizeof(int));
+    float* values_tp = (float*) malloc(nnz * sizeof(float));
+
+    cudaMemcpy(col_indices_tp, dev_row_indices_csc, nnz * sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(row_offsets_tp, dev_column_offsets_csc, (columns + 1) * sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(values_tp, dev_values_csc, nnz * sizeof(float), cudaMemcpyDeviceToHost);
+
+    // save transposed matrix to file
+    transposed_csr_to_file(file, columns, rows, nnz, row_offsets_tp, col_indices_tp, values_tp);
+
+    // free device memory
+    cudaFree(dev_row_offsets_csr);
+    cudaFree(dev_col_indices_csr);
+    cudaFree(dev_values_csr);
+
+    cudaFree(dev_num_elements_in_col);
+    cudaFree(dev_values_stored_from_col);
+    cudaFree(dev_column_offsets_csc);
+    cudaFree(dev_row_indices_csc);
+    cudaFree(dev_values_csc);
+
+    // free host memory
+    free(row_offsets);
+    free(col_indices);
+    free(values);
+    free(num_elements_in_col);
+    free(values_stored_from_col);
+    free(column_offsets_csc);    
+    free(row_offsets_tp);
+    free(col_indices_tp);
+    free(values_tp);
+}
+
 
 
 void transpose_own_COO(string file, string timing_file){

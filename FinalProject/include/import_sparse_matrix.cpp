@@ -12,7 +12,7 @@ using namespace std;
 
 inline bool isEqual(float x, float y)
 {
-  const float epsilon = 1e-5;
+  const float epsilon = 1e-20;
   return abs(x - y) <= epsilon * std::abs(x);
 }
 
@@ -32,6 +32,8 @@ void to_csr(float** dense_matrix, int M, int N, int nz, int*& row_offsets, int*&
         }
     }
     row_offsets[M] = nz;
+
+    printf("%d\n", nz_idx);
 }
 
 
@@ -97,6 +99,7 @@ void transposed_csr_to_file(std::string file, int M, int N, int nz, int*& row_of
 
 void to_coo(float** dense_matrix, int M, int N, int nz, int*& row_indices, int*& column_indices, float*& values){
     int nz_idx = 0;
+    printf("%d, %d\n", M, N);
     
     for (int i=0; i<M; i++){
         for (int j=0; j<N; j++){
@@ -109,6 +112,8 @@ void to_coo(float** dense_matrix, int M, int N, int nz, int*& row_indices, int*&
             }
         }
     }
+    printf("%d\n", nz_idx);
+    printf("%d, %d\n", row_indices[nz-1], column_indices[nz-1]);
 }
 
 void coo_to_file(const char* file, int M, int N, int nz, int*& row_indices, int*& column_indices, float*& values){
@@ -182,7 +187,8 @@ void convert_mtx_to_file(const char* file){
     mm_read_banner(f, &matcode);
     
     // read size information and number of non-zero elements
-    int M, N, nz; 
+    int M, N, nz;
+    int nnz = 0;  // some files contain 0 as non-zero element 
     mm_read_mtx_crd_size(f, &M, &N, &nz);
 
     // create dense matrix 
@@ -203,37 +209,43 @@ void convert_mtx_to_file(const char* file){
     for (int i=0; i<nz; i++)
     {
         fscanf(f, "%d %d %lf\n", &row, &column, &value);
-        row--;  /* adjust from 1-based to 0-based */
-        column--;
+        if (!isEqual(value, 0.0)){
+            row--;  /* adjust from 1-based to 0-based */
+            column--;
+            nnz++;
 
-        dense_matrix[row][column] = (float) value;
+            dense_matrix[row][column] = (float) value;
+        }
+        
     }
 
     // convert to CSR
     int *row_offsets = (int*) malloc((M+1) * sizeof(int));
-    int *column_indices = (int*) malloc(nz * sizeof(int));
-    float *values = (float*) malloc(nz * sizeof(float));
+    int *column_indices = (int*) malloc(nnz * sizeof(int));
+    float *values = (float*) malloc(nnz * sizeof(float));
 
-    to_csr(dense_matrix, M, N, nz, row_offsets, column_indices, values);   
+    to_csr(dense_matrix, M, N, nnz, row_offsets, column_indices, values);   
     
     // save CSR to file
-    csr_to_file(file, M, N, nz, row_offsets, column_indices, values);
+    csr_to_file(file, M, N, nnz, row_offsets, column_indices, values);
 
     // free memory
     free(row_offsets);
     free(column_indices);
     free(values);
-    
 
     // convert to COO
-    int* row_indices_coo = (int*) malloc(nz * sizeof(int));;
-    int* column_indices_coo = (int*) malloc(nz * sizeof(int));;
-    float* values_coo = (float*) malloc(nz * sizeof(float));;
+    int* row_indices_coo = (int*) malloc(nnz * sizeof(int));
+    int* column_indices_coo = (int*) malloc(nnz * sizeof(int));
+    float* values_coo = (float*) malloc(nnz * sizeof(float));
 
-    to_coo(dense_matrix, M, N, nz, row_indices_coo, column_indices_coo, values_coo);
+    to_coo(dense_matrix, M, N, nnz, row_indices_coo, column_indices_coo, values_coo);
+
+    printf("%d\n", nnz);
+    printf("%d, %d\n", row_indices_coo[nnz-1], column_indices_coo[nnz-1]);
 
     // save COO to file
-    coo_to_file(file, M, N, nz, row_indices_coo, column_indices_coo, values_coo);
+    coo_to_file(file, M, N, nnz, row_indices_coo, column_indices_coo, values_coo);
 
     // free memory
     free(row_indices_coo);
@@ -328,3 +340,17 @@ void csr_from_file(string file, int &rows, int &cols, int &nnz, int*& row_offset
 
     csr_f.close();
 }
+
+
+// int main(int argc, char* argv[]){
+//     convert_mtx_to_file("test_matrices/1-bp_200.mtx");
+//     convert_mtx_to_file("test_matrices/2-fs_183_1.mtx");
+//     convert_mtx_to_file("test_matrices/3-fs_541_1.mtx");
+//     convert_mtx_to_file("test_matrices/4-pores_2.mtx");
+//     convert_mtx_to_file("test_matrices/5-shl_200.mtx");
+//     convert_mtx_to_file("test_matrices/6-GD96_a.mtx");
+//     convert_mtx_to_file("test_matrices/7-GD00_c.mtx");
+//     convert_mtx_to_file("test_matrices/8-ch5-5-b3.mtx");
+//     convert_mtx_to_file("test_matrices/9-dw256A.mtx");
+//     convert_mtx_to_file("test_matrices/10-qh768.mtx");
+// }

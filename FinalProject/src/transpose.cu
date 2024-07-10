@@ -22,36 +22,82 @@ __global__ void warm_up_gpu(){
 }
 
 
-__global__ void transpose_COO(int* row_indices, int* column_indices, int nnz){
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    int tmp;
+__global__ void transpose_COO(int* row_indices, int* column_indices, int* row_indices_tp, int* col_indices_tp, int nnz){
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;    
 
     while (idx < nnz){
-        // swap row and columns
-        //printf("%d: %d, %d\n", idx, row_indices[idx], column_indices[idx]);
-        tmp = row_indices[idx];
-        row_indices[idx] = column_indices[idx];
-        column_indices[idx] = tmp;
-        //printf("%d: %d, %d\n", idx, row_indices[idx], column_indices[idx]);
+        // swap row and columns        
+        row_indices_tp[idx] = column_indices[idx];
+        col_indices_tp[idx] = row_indices[idx];        
         
         idx += gridDim.x * blockDim.x;
     }
 }
 
 
-__global__ void CSR2COO(int* row_offsets, int* row_indices, int rows){
+__global__ void CSR2COO(int* row_offsets_csr, int* row_indices_coo, int rows){
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int num_elements_in_row;
 
     while (idx < rows){
         // recreate row indices from offset
-        num_elements_in_row = row_offsets[idx + 1] - row_offsets[idx];
+        num_elements_in_row = row_offsets_csr[idx + 1] - row_offsets_csr[idx];
 
         for (int i=0; i<num_elements_in_row; i++){
-            row_indices[row_offsets[idx] + i] = idx;
+            row_indices_coo[row_offsets_csr[idx] + i] = idx;
         }
 
-        idx += blockDim.x;
+        idx += gridDim.x * blockDim.x;
+    }
+}
+
+
+__global__ void COO2CSR(int rows, int nnz, int* num_elements_in_row, int* saved_values_in_row,
+                        int* row_indices_coo, int* col_indices_coo, float* values_coo,
+                        int* row_offsets_csr, int* col_indices_csr, float* values_csr){
+    int original_idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int offset = gridDim.x * blockDim.x;
+    int idx = original_idx;
+
+    // count number of values in rows
+    while (idx < rows){
+        num_elements_in_row[idx] = 0;
+        for (int i=0; i<nnz; i++){
+            if (row_indices_coo[i] == idx){
+                num_elements_in_row[idx]++;                
+            }
+        }
+
+        idx += offset;
+    }
+
+    __syncthreads();  // wait for all threads to finish
+
+    // sum them up
+    idx = original_idx;
+    while (idx < rows){
+        row_offsets_csr[idx+1] = 0;
+        for (int i=0; i<idx+1; i++){
+            row_offsets_csr[idx+1] += num_elements_in_row[i];
+        }
+
+        idx += offset;
+    }
+
+    __syncthreads();  // wait for all threads to finish
+
+    // figure out where the columns and values go
+    idx = original_idx;
+    while (idx < rows){
+        saved_values_in_row[idx] = 0;
+        for (int i=0; i<nnz; i++){
+            if (row_indices_coo[i] == idx){
+                col_indices_csr[row_offsets_csr[idx] + saved_values_in_row[idx]] = col_indices_coo[i];
+                values_csr[row_offsets_csr[idx] + saved_values_in_row[idx]] = values_coo[i];
+                saved_values_in_row[idx]++;
+            }
+        }
+        idx += offset;
     }
 }
 
@@ -60,12 +106,13 @@ __global__ void CSR2CSC(int rows, int columns, int nnz, int* num_elements_in_col
                         int* row_indices_csc, int* column_offsets_csc,  float* values_csc, 
                         int* values_stored_from_col){
     int original_idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int offset = gridDim.x * blockDim.x;
     int idx = original_idx;
 
     // count number of non-zero elements per column
     while (idx < nnz){
         num_elements_in_col[column_indices_csr[idx]] += 1;
-        idx += blockDim.x;
+        idx += offset;
     }
 
     __syncthreads();
@@ -76,7 +123,7 @@ __global__ void CSR2CSC(int rows, int columns, int nnz, int* num_elements_in_col
         for (int i=0; i<idx+1; i++){
             column_offsets_csc[idx + 1] += num_elements_in_col[i];
         }
-        idx += blockDim.x;
+        idx += offset;
     }
 
     __syncthreads();
@@ -94,12 +141,12 @@ __global__ void CSR2CSC(int rows, int columns, int nnz, int* num_elements_in_col
             values_csc[column_offsets_csc[col] + values_stored_from_col[col]] = values_csr[row_offsets_csr[idx] + i];
             values_stored_from_col[col] += 1;
         }
-        idx += blockDim.x;
+        idx += offset;
     }
 }
 
 
-void transpose_own_CSR(string file, string output_file){
+void transpose_own_CSR(string file, string timing_file){
     // load CSR matrix from file
     int rows, columns, nnz;
     int *row_offsets, *col_indices;
@@ -211,10 +258,14 @@ void transpose_own_COO(string file, string timing_file){
 
     // create arrays on device
     int *dev_row_indices, *dev_col_indices;
+    int *dev_row_indices_tp, *dev_col_indices_tp;
 
     // allocate memory on device
     cudaMalloc(&dev_row_indices, nnz * sizeof(int));
     cudaMalloc(&dev_col_indices, nnz * sizeof(int));
+    cudaMalloc(&dev_row_indices_tp, nnz * sizeof(int));
+    cudaMalloc(&dev_col_indices_tp, nnz * sizeof(int));
+
 
     // copy entries to device
     cudaMemcpy(dev_row_indices, row_indices, nnz * sizeof(int), cudaMemcpyHostToDevice);
@@ -229,22 +280,25 @@ void transpose_own_COO(string file, string timing_file){
     float min_time = INFINITY;
     int min_blocks;
     int min_threads;
-    int possible_blocks = ceil(nnz / 1024);
+    int possible_blocks = ceil(nnz / 1024.);
+    int nBlocks;
+    int nThreads;
+   
     float milliseconds;
     for (int i=1; i<=possible_blocks; i++){
-        dim3 nBlocks(i, 1, 1);
+        nBlocks = i; 
 
         if (i == 1){
             // test diferent numbers of threads
             for (int j=2; j<=1024; j*=2){
-                dim3 nThreads(j, 1, 1);
+                nThreads = j;
 
                 // start CUDA timer 
                 cudaEventRecord(start, 0);
 
                 // invoke kernel NUM_REPS times 
                 for (int k=0; k<NUM_REPS; k++){
-                    transpose_COO<<<nBlocks, nThreads>>>(dev_row_indices, dev_col_indices, nnz);
+                    transpose_COO<<<nBlocks, nThreads>>>(dev_row_indices, dev_col_indices, dev_row_indices_tp, dev_col_indices_tp, nnz);
                 }
 
                 // synchronize
@@ -269,14 +323,14 @@ void transpose_own_COO(string file, string timing_file){
             }
         }
         else {
-            dim3 nThreads(1024, 1, 1);
+            nThreads = 1024;
 
             // start CUDA timer 
             cudaEventRecord(start, 0);
 
             // invoke kernel NUM_REPS times 
             for (int k=0; k<NUM_REPS; k++){
-                transpose_COO<<<nBlocks, nThreads>>>(dev_row_indices, dev_col_indices, nnz);
+                transpose_COO<<<nBlocks, nThreads>>>(dev_row_indices, dev_col_indices, dev_row_indices_tp, dev_col_indices_tp, nnz);
             }
 
             // synchronize
@@ -312,10 +366,8 @@ void transpose_own_COO(string file, string timing_file){
     myfile << min_threads << "\n";
 
     // copy back
-    cudaMemcpy(row_indices, dev_row_indices, nnz * sizeof(int), cudaMemcpyDeviceToHost);
-    cudaMemcpy(col_indices, dev_col_indices, nnz * sizeof(int), cudaMemcpyDeviceToHost);
-
-    printf("%d, %d\n", row_indices[1], col_indices[1]);
+    cudaMemcpy(row_indices, dev_row_indices_tp, nnz * sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(col_indices, dev_col_indices_tp, nnz * sizeof(int), cudaMemcpyDeviceToHost);
 
     // save result to file
     transposed_coo_to_file(file, columns, rows, nnz, row_indices, col_indices, values);
@@ -335,6 +387,139 @@ void transpose_own_COO(string file, string timing_file){
     // free timer events
     cudaEventDestroy(start);
     cudaEventDestroy(stop);
+}
+
+
+void transpose_own_via_COO(string file, string timing_file){
+    // file to save execution time for bandwidth analysis
+    std::ofstream myfile;
+	myfile.open(timing_file);
+
+    // load CSR matrix from file
+    int rows, columns, nnz;
+    int *row_offsets, *col_indices;
+    float* values;
+
+    csr_from_file(file, rows, columns, nnz, row_offsets, col_indices, values);
+
+    // create arrays on device
+    int *dev_row_offsets, *dev_col_indices;
+    float* dev_values;
+
+    // allocate memory and copy to device
+    cudaMalloc(&dev_row_offsets, (rows+1) * sizeof(int));
+    cudaMalloc(&dev_col_indices, nnz * sizeof(int));
+    cudaMalloc(&dev_values,  nnz * sizeof(float));
+
+    cudaMemcpy(dev_row_offsets, row_offsets, (rows+1) * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_col_indices, col_indices, nnz * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_values, values, nnz * sizeof(float), cudaMemcpyHostToDevice);
+
+    // allocate memory for COO
+    int *dev_row_indices;
+    cudaMalloc(&dev_row_indices, nnz * sizeof(int));
+
+    // create blocks and threads
+    int nBlocks; 
+    int nThreads = 1024;
+    int possible_blocks = ceil(nnz / 1024.);
+
+    // device variables for COO transpose
+    int *dev_tp_row_indices, *dev_tp_col_indices;
+    cudaMalloc(&dev_tp_row_indices, nnz * sizeof(int));
+    cudaMalloc(&dev_tp_col_indices, nnz * sizeof(int));
+
+    // device variables for COO->CSR conversion
+    int *dev_num_elements_in_row, *dev_saved_values_in_row;
+    cudaMalloc(&dev_num_elements_in_row, rows * sizeof(int));
+    cudaMalloc(&dev_saved_values_in_row, rows * sizeof(int));
+
+    int* dev_row_offsets_tp, *dev_col_indices_tp;
+    float* dev_values_tp;
+
+    cudaMalloc(&dev_row_offsets_tp, (columns+1) * sizeof(int));
+    cudaMalloc(&dev_col_indices_tp, nnz * sizeof(int));
+    cudaMalloc(&dev_values_tp, nnz * sizeof(float));
+
+    // Create CUDA events to use for timing
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+    float milliseconds = 0.0;
+
+    // start CUDA timer 
+    cudaEventRecord(start, 0);
+
+    // invoke kernels NUM_REPS times 
+    for (int k=0; k<NUM_REPS; k++){
+        // convert to COO
+        CSR2COO<<<possible_blocks, nThreads>>>(dev_row_offsets, dev_row_indices, rows);
+
+        cudaDeviceSynchronize();
+
+        // transpose COO
+        transpose_COO<<<possible_blocks, nThreads>>>(dev_row_indices, dev_col_indices, dev_tp_row_indices, dev_tp_col_indices, nnz);
+
+        cudaDeviceSynchronize();
+
+        // convert to CSR
+        COO2CSR<<<1, nThreads>>>(rows, nnz, dev_num_elements_in_row, dev_saved_values_in_row,
+                                    dev_tp_row_indices, dev_tp_col_indices, dev_values,
+                                    dev_row_offsets_tp, dev_col_indices_tp, dev_values_tp);
+                            
+        cudaDeviceSynchronize();
+    }
+
+    // stop CUDA timer
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop); 
+
+    // Calculate elapsed time
+    milliseconds = 0;
+    cudaEventElapsedTime(&milliseconds, start, stop);
+
+    // divide by NUM_REPS to get mean
+    milliseconds /= NUM_REPS;
+
+    // save execution time and configuration to file
+    myfile << milliseconds << "\n";
+    myfile << rows << "\n";
+    myfile << columns << "\n";
+    myfile << nnz << "\n";
+
+    // copy back
+    cudaMemcpy(row_offsets, dev_row_offsets_tp, (columns+1) * sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(col_indices, dev_col_indices_tp, nnz * sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(values, dev_values_tp, nnz * sizeof(int), cudaMemcpyDeviceToHost);
+
+    // save COO matrix
+    transposed_csr_to_file(file, columns, rows, nnz, row_offsets, col_indices, values);
+
+
+    // free device memory
+    cudaFree(dev_row_offsets);
+    cudaFree(dev_col_indices);
+    cudaFree(dev_values);
+    cudaFree(dev_row_indices);
+    cudaFree(dev_tp_row_indices);
+    cudaFree(dev_tp_col_indices);
+    cudaFree(dev_num_elements_in_row);
+    cudaFree(dev_saved_values_in_row);
+    cudaFree(dev_row_offsets_tp);
+    cudaFree(dev_col_indices_tp);
+    cudaFree(dev_values_tp);
+
+    // free timer events
+    cudaEventDestroy(start);
+    cudaEventDestroy(stop);
+
+    // free host memory
+    free(row_offsets);
+    free(col_indices);
+    free(values);
+
+    // close file
+    myfile.close();
 }
 
 
@@ -588,7 +773,7 @@ int main(int argc, char* argv[]){
         }
     }
 
-    // Strategy 1: cuSPARSE COO - Currently not working
+    // Strategy 1: cuSPARSE COO - Currently not working / replace with own CSR2CSC
     if (atoi(argv[1]) == 1){
         printf("Use COO format and the cuSPARSE library.\n");
 
@@ -620,11 +805,12 @@ int main(int argc, char* argv[]){
         }
 
         string argv2 = argv[2];
+        
         if (argv2 == "all"){
             for (int i=1; i<11; i++){
                 printf("Transposing matrix %d\n", i);
                 transpose_own_COO("test_matrices/coo/" + to_string(i) + "_coo.csv",
-                                    "output/coo_own_" + to_string(atoi(argv[2])) + ".csv");
+                                    "output/coo_own_" + to_string(i) + ".csv");
             }
         }
         else {
@@ -635,9 +821,9 @@ int main(int argc, char* argv[]){
         
     }
 
-    // Strategy 3: own CSR2CSC kernel
+    // Strategy 3: own kernel CSR via COO
     if (atoi(argv[1]) == 3){
-        printf("Use CSR format and own CSR2CSC kernel.\n");
+        printf("Use CSR format and transpose via own COO kernel.\n");
 
         // check which test matrix to use
         if (argc < 3){
@@ -648,14 +834,14 @@ int main(int argc, char* argv[]){
         if (argv2 == "all"){
             for (int i=1; i<11; i++){
                 printf("Transposing matrix %d\n", i);
-                transpose_own_CSR("test_matrices/csr/" + to_string(i) + "_csr.csv",
-                                    "output/csr_own_" + to_string(atoi(argv[2])) + ".csv");
+                transpose_own_via_COO("test_matrices/csr/" + to_string(i) + "_csr.csv",
+                                    "output/csr_coo_own_" + to_string(i) + ".csv");
             }
         }
         else {
             printf("Transposing matrix %d\n", atoi(argv[2]));
-            transpose_own_COO("test_matrices/csr/" + to_string(atoi(argv[2])) + "_csr.csv",
-                                "output/csr_own_" + to_string(atoi(argv[2])) + ".csv");
+            transpose_own_via_COO("test_matrices/csr/" + to_string(atoi(argv[2])) + "_csr.csv",
+                                "output/csr_coo_own_" + to_string(atoi(argv[2])) + ".csv");
         }
         
     }

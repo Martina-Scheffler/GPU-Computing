@@ -25,4 +25,4 @@ rm -rf output/
 mkdir output/
 
 # run
-srun ./bin/transpose 2 all
+srun ./bin/transpose 3 all

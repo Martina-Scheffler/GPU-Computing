@@ -150,7 +150,7 @@ void transposed_coo_to_file(std::string file, int M, int N, int nz, int*& row_in
     coo_f << N << "\n";   // columns
     coo_f << nz << "\n";  // number of non-zero elements
 
-    // row offsets
+    // row indices
     for (int i=0; i<nz; i++){
         coo_f << row_indices[i] << ", ";
     }

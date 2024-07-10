@@ -99,7 +99,7 @@ __global__ void CSR2CSC(int rows, int columns, int nnz, int* num_elements_in_col
 }
 
 
-void transpose_own_CSR(string file){
+void transpose_own_CSR(string file, string output_file){
     // load CSR matrix from file
     int rows, columns, nnz;
     int *row_offsets, *col_indices;
@@ -315,7 +315,7 @@ void transpose_own_COO(string file, string timing_file){
     cudaMemcpy(row_indices, dev_row_indices, nnz * sizeof(int), cudaMemcpyDeviceToHost);
     cudaMemcpy(col_indices, dev_col_indices, nnz * sizeof(int), cudaMemcpyDeviceToHost);
 
-    printf("%d, %d\n", row_indices[1], column_indices[1]);
+    printf("%d, %d\n", row_indices[1], col_indices[1]);
 
     // save result to file
     transposed_coo_to_file(file, columns, rows, nnz, row_indices, col_indices, values);

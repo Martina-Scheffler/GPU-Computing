@@ -28,11 +28,11 @@ __global__ void transpose_COO(int* row_indices, int* column_indices, int nnz){
 
     while (idx < nnz){
         // swap row and columns
-        cout << idx << "\t" << row_indices[idx] << "\t" << column_indices[idx] << "\n";
+        printf("%d: %d, %d\n", idx, row_indices[idx], column_indices[idx]);
         tmp = row_indices[idx];
         row_indices[idx] = column_indices[idx];
         column_indices[idx] = tmp;
-        cout << idx << "\t" << row_indices[idx] << "\t" << column_indices[idx] << "\n";
+        printf("%d: %d, %d\n", idx, row_indices[idx], column_indices[idx]);
         
         idx += gridDim.x * blockDim.x;
     }

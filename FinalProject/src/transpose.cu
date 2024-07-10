@@ -28,18 +28,18 @@ __global__ void transpose_COO(int* row_indices, int* column_indices, int nnz){
 
     while (idx < nnz){
         // swap row and columns
-        printf("%d: %d, %d\n", idx, row_indices[idx], column_indices[idx]);
+        //printf("%d: %d, %d\n", idx, row_indices[idx], column_indices[idx]);
         tmp = row_indices[idx];
         row_indices[idx] = column_indices[idx];
         column_indices[idx] = tmp;
-        printf("%d: %d, %d\n", idx, row_indices[idx], column_indices[idx]);
+        //printf("%d: %d, %d\n", idx, row_indices[idx], column_indices[idx]);
         
         idx += gridDim.x * blockDim.x;
     }
 }
 
 
-__global__ void CSR_2_COO(int* row_offsets, int* row_indices, int rows){
+__global__ void CSR2COO(int* row_offsets, int* row_indices, int rows){
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int num_elements_in_row;
 
@@ -315,6 +315,8 @@ void transpose_own_COO(string file, string timing_file){
     cudaMemcpy(row_indices, dev_row_indices, nnz * sizeof(int), cudaMemcpyDeviceToHost);
     cudaMemcpy(col_indices, dev_col_indices, nnz * sizeof(int), cudaMemcpyDeviceToHost);
 
+    printf("%d, %d\n", row_indices[1], column_indices[1]);
+
     // save result to file
     transposed_coo_to_file(file, columns, rows, nnz, row_indices, col_indices, values);
 
@@ -586,7 +588,7 @@ int main(int argc, char* argv[]){
         }
     }
 
-    // Strategy 1: cuSPARSE COO
+    // Strategy 1: cuSPARSE COO - Currently not working
     if (atoi(argv[1]) == 1){
         printf("Use COO format and the cuSPARSE library.\n");
 
@@ -608,8 +610,9 @@ int main(int argc, char* argv[]){
         }
     }
 
+    // Strategy 2: own COO transpose kernel
     if (atoi(argv[1]) == 2){
-        printf("Use COO format and own kernels.\n");
+        printf("Use COO format and own kernel.\n");
 
         // check which test matrix to use
         if (argc < 3){
@@ -631,6 +634,33 @@ int main(int argc, char* argv[]){
         }
         
     }
+
+    // Strategy 3: own CSR2CSC kernel
+    if (atoi(argv[1]) == 3){
+        printf("Use CSR format and own CSR2CSC kernel.\n");
+
+        // check which test matrix to use
+        if (argc < 3){
+            throw runtime_error("Please choose a test matrix");
+        }
+
+        string argv2 = argv[2];
+        if (argv2 == "all"){
+            for (int i=1; i<11; i++){
+                printf("Transposing matrix %d\n", i);
+                transpose_own_CSR("test_matrices/csr/" + to_string(i) + "_csr.csv",
+                                    "output/csr_own_" + to_string(atoi(argv[2])) + ".csv");
+            }
+        }
+        else {
+            printf("Transposing matrix %d\n", atoi(argv[2]));
+            transpose_own_COO("test_matrices/csr/" + to_string(atoi(argv[2])) + "_csr.csv",
+                                "output/csr_own_" + to_string(atoi(argv[2])) + ".csv");
+        }
+        
+    }
+
+
     
     return 0;
 }

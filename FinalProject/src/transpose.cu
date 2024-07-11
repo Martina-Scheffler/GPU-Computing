@@ -440,7 +440,6 @@ void transpose_own_via_COO(string file, string timing_file){
     cudaMalloc(&dev_row_indices, nnz * sizeof(int));
 
     // create blocks and threads
-    int nBlocks; 
     int nThreads = 1024;
     int possible_blocks = ceil(nnz / 1024.);
 
@@ -734,11 +733,7 @@ void transpose_cuSparse_COO(string file){
     cudaMemcpy(row_indices, dev_row_indices, nnz * sizeof(int), cudaMemcpyDeviceToHost);
     cudaMemcpy(col_indices, dev_col_indices, nnz * sizeof(int), cudaMemcpyDeviceToHost);
     cudaMemcpy(values, dev_values, nnz * sizeof(float), cudaMemcpyDeviceToHost);
-
-    for (int i=0; i<nnz; i++){
-        printf("%f\n", values);
-    }
-               
+       
     // write transposed matrix to file
     transposed_coo_to_file(file, columns, rows, nnz, row_indices, col_indices, values);                            
 

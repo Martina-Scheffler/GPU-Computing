@@ -1,6 +1,7 @@
 *bin/
 *output/
 *.png
+!FinalProject/evaluation/dev/config_csr_coo.png
 FinalProject/test_matrices/transposed/*.csv
 FinalProject/include/import
 .vscode/*

@@ -551,9 +551,6 @@ void transpose_own_via_COO(string file, string timing_file, bool find_best_confi
         milliseconds_overall += milliseconds;
     }
 
-    printf("Best config for COO-CSR: %d, %d\n", min_blocks, min_threads);
-    milliseconds_overall += min_time;
-
     // invoke COO transpose kernel NUM_REPS times
     // start CUDA timer 
     cudaEventRecord(start, 0);

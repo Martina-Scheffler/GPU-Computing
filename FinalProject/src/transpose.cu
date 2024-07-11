@@ -473,6 +473,8 @@ void transpose_own_via_COO(string file, string timing_file){
     // start CUDA timer 
     cudaEventRecord(start, 0);
 
+    // run CSR2COO kernel NUM_REPS times, the best number of blocks & threads was obtained running an earlier version,
+    // the code was however removed because it increased compile time
     for (int k=0; k<NUM_REPS; k++){
         CSR2COO<<<possible_blocks, 1024>>>(dev_row_offsets, dev_row_indices, rows);
         cudaDeviceSynchronize();

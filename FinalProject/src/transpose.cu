@@ -958,7 +958,7 @@ int main(int argc, char* argv[]){
 
         bool find_best_config = false;
         if (argc == 4){
-            if (atoi(argv[3] == 1)){
+            if (atoi(argv[3]) == 1){
                 find_best_config = true;
             }
         }

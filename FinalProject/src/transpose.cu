@@ -10,7 +10,7 @@
 
 using namespace std;
 
-#define NUM_REPS 100
+#define NUM_REPS 10
 
 
 __global__ void transpose_COO(int* row_indices, int* column_indices, int* row_indices_tp, int* col_indices_tp, int nnz){

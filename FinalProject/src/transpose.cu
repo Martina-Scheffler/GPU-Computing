@@ -11,6 +11,7 @@
 using namespace std;
 
 #define NUM_REPS 100
+#define FIND_BEST_CONFIG false
 
 
 __global__ void transpose_COO(int* row_indices, int* column_indices, int* row_indices_tp, int* col_indices_tp, int nnz){
@@ -410,7 +411,7 @@ void transpose_own_COO(string file, string timing_file){
 }
 
 
-void transpose_own_via_COO(string file, string timing_file, bool find_best_config){
+void transpose_own_via_COO(string file, string timing_file){
     // file to save execution time for bandwidth analysis
     std::ofstream myfile;
 	myfile.open(timing_file);
@@ -470,7 +471,7 @@ void transpose_own_via_COO(string file, string timing_file, bool find_best_confi
     // create blocks and threads
     int possible_blocks = ceil(nnz / 1024.);
 
-    if (find_best_config){
+    if (FIND_BEST_CONFIG){
         // invoke CSR2COO kernel NUM_REPS times and find best config
         for (int i=1; i<=possible_blocks; i++){
             if (i == 1){
@@ -954,25 +955,18 @@ int main(int argc, char* argv[]){
             throw runtime_error("Please choose a test matrix");
         }
 
-        bool find_best_config = false;
-        if (argc == 4){
-            if (atoi(argv[3]) == 1){
-                find_best_config = true;
-            }
-        }
-
         string argv2 = argv[2];
         if (argv2 == "all"){
             for (int i=1; i<11; i++){
                 printf("Transposing matrix %d\n", i);
                 transpose_own_via_COO("test_matrices/csr/" + to_string(i) + "_csr.csv",
-                                    "output/csr_coo_own_" + to_string(i) + ".csv", find_best_config);
+                                    "output/csr_coo_own_" + to_string(i) + ".csv");
             }
         }
         else {
             printf("Transposing matrix %d\n", atoi(argv[2]));
             transpose_own_via_COO("test_matrices/csr/" + to_string(atoi(argv[2])) + "_csr.csv",
-                                "output/csr_coo_own_" + to_string(atoi(argv[2])) + ".csv", find_best_config);
+                                "output/csr_coo_own_" + to_string(atoi(argv[2])) + ".csv");
         }
         
     }

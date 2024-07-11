@@ -521,7 +521,7 @@ void transpose_own_via_COO(string file, string timing_file){
             if (milliseconds < min_time){
                 min_time = milliseconds;
                 min_blocks = i;
-                min_threads = j;
+                min_threads = 1024;
             }
         }
     }

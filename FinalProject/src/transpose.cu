@@ -472,8 +472,10 @@ void transpose_own_via_COO(string file, string timing_file){
 
     // invoke CSR2COO kernel NUM_REPS times and find best config
     for (int i=1; i<=possible_blocks; i++){
+        printf("%d\n", i);
         if (i == 1){
             for (int j=2; j<=1024; j*=2){
+                printf("%d\n", j);
                 // start CUDA timer 
                 cudaEventRecord(start, 0);
 

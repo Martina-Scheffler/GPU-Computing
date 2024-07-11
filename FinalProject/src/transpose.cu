@@ -869,6 +869,7 @@ void transpose_cuSparse_COO(string file){
 
 
 int main(int argc, char* argv[]){
+    printf("Started script\n");
     if (argc < 2){
         throw runtime_error("Please choose a strategy");
     }

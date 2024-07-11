@@ -10,7 +10,7 @@
 
 using namespace std;
 
-#define NUM_REPS 50
+#define NUM_REPS 100
 
 
 __global__ void transpose_COO(int* row_indices, int* column_indices, int* row_indices_tp, int* col_indices_tp, int nnz){
@@ -410,7 +410,7 @@ void transpose_own_COO(string file, string timing_file){
 }
 
 
-void transpose_own_via_COO(string file, string timing_file){
+void transpose_own_via_COO(string file, string timing_file, bool find_best_config){
     // file to save execution time for bandwidth analysis
     std::ofstream myfile;
 	myfile.open(timing_file);
@@ -470,15 +470,42 @@ void transpose_own_via_COO(string file, string timing_file){
     // create blocks and threads
     int possible_blocks = ceil(nnz / 1024.);
 
-    // invoke CSR2COO kernel NUM_REPS times and find best config
-    for (int i=1; i<=possible_blocks; i++){
-        if (i == 1){
-            for (int j=2; j<=1024; j*=2){
+    if (find_best_config){
+        // invoke CSR2COO kernel NUM_REPS times and find best config
+        for (int i=1; i<=possible_blocks; i++){
+            if (i == 1){
+                for (int j=2; j<=1024; j*=2){
+                    // start CUDA timer 
+                    cudaEventRecord(start, 0);
+
+                    for (int k=0; k<NUM_REPS; k++){
+                        CSR2COO<<<i, j>>>(dev_row_offsets, dev_row_indices, rows);
+                        cudaDeviceSynchronize();
+                    }
+
+                    // stop CUDA timer
+                    cudaEventRecord(stop, 0);
+                    cudaEventSynchronize(stop); 
+
+                    // Calculate elapsed time
+                    cudaEventElapsedTime(&milliseconds, start, stop);
+
+                    // divide by NUM_REPS to get mean
+                    milliseconds /= NUM_REPS;
+
+                    if (milliseconds < min_time){
+                        min_time = milliseconds;
+                        min_blocks = i;
+                        min_threads = j;
+                    }
+                }
+            }
+            else {
                 // start CUDA timer 
                 cudaEventRecord(start, 0);
 
                 for (int k=0; k<NUM_REPS; k++){
-                    CSR2COO<<<i, j>>>(dev_row_offsets, dev_row_indices, rows);
+                    CSR2COO<<<i, 1024>>>(dev_row_offsets, dev_row_indices, rows);
                     cudaDeviceSynchronize();
                 }
 
@@ -495,35 +522,33 @@ void transpose_own_via_COO(string file, string timing_file){
                 if (milliseconds < min_time){
                     min_time = milliseconds;
                     min_blocks = i;
-                    min_threads = j;
+                    min_threads = 1024;
                 }
             }
         }
-        else {
-            // start CUDA timer 
-            cudaEventRecord(start, 0);
 
-            for (int k=0; k<NUM_REPS; k++){
-                CSR2COO<<<i, 1024>>>(dev_row_offsets, dev_row_indices, rows);
-                cudaDeviceSynchronize();
-            }
+        printf("Best config for COO-CSR: %d, %d\n", min_blocks, min_threads);
+        milliseconds_overall += min_time;
+    }
+    else {
+        // start CUDA timer 
+        cudaEventRecord(start, 0);
 
-            // stop CUDA timer
-            cudaEventRecord(stop, 0);
-            cudaEventSynchronize(stop); 
-
-            // Calculate elapsed time
-            cudaEventElapsedTime(&milliseconds, start, stop);
-
-            // divide by NUM_REPS to get mean
-            milliseconds /= NUM_REPS;
-
-            if (milliseconds < min_time){
-                min_time = milliseconds;
-                min_blocks = i;
-                min_threads = 1024;
-            }
+        for (int k=0; k<NUM_REPS; k++){
+            CSR2COO<<<possible_blocks, 1024>>>(dev_row_offsets, dev_row_indices, rows);
+            cudaDeviceSynchronize();
         }
+
+        // stop CUDA timer
+        cudaEventRecord(stop, 0);
+        cudaEventSynchronize(stop); 
+
+        // Calculate elapsed time
+        cudaEventElapsedTime(&milliseconds, start, stop);
+
+        // divide by NUM_REPS to get mean
+        milliseconds /= NUM_REPS;
+        milliseconds_overall += milliseconds;
     }
 
     printf("Best config for COO-CSR: %d, %d\n", min_blocks, min_threads);
@@ -931,18 +956,25 @@ int main(int argc, char* argv[]){
             throw runtime_error("Please choose a test matrix");
         }
 
+        bool find_best_config = false;
+        if (argc == 4){
+            if (atoi(argv[3] == 1)){
+                find_best_config = true;
+            }
+        }
+
         string argv2 = argv[2];
         if (argv2 == "all"){
             for (int i=1; i<11; i++){
                 printf("Transposing matrix %d\n", i);
                 transpose_own_via_COO("test_matrices/csr/" + to_string(i) + "_csr.csv",
-                                    "output/csr_coo_own_" + to_string(i) + ".csv");
+                                    "output/csr_coo_own_" + to_string(i) + ".csv", find_best_config);
             }
         }
         else {
             printf("Transposing matrix %d\n", atoi(argv[2]));
             transpose_own_via_COO("test_matrices/csr/" + to_string(atoi(argv[2])) + "_csr.csv",
-                                "output/csr_coo_own_" + to_string(atoi(argv[2])) + ".csv");
+                                "output/csr_coo_own_" + to_string(atoi(argv[2])) + ".csv", find_best_config);
         }
         
     }

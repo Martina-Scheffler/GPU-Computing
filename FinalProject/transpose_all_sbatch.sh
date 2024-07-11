@@ -27,4 +27,4 @@ mkdir output/
 # run
 srun ./bin/transpose 0 all
 srun ./bin/transpose 1 all
-srun ./bin/transpose 3 all
+srun ./bin/transpose 3 all 0

@@ -32,15 +32,19 @@ void to_csr(float** dense_matrix, int M, int N, int nz, int*& row_offsets, int*&
         }
     }
     row_offsets[M] = nz;
-
-    printf("%d\n", nz_idx);
 }
 
 
 void csr_to_file(const char* file, int M, int N, int nz, int*& row_offsets, int*& column_indices, float*& values){
     ofstream csr_f;
     string file_str = (string) file;
-    csr_f.open("test_matrices/csr/" + file_str.substr(14, 1) + "_csr.csv");
+    if (file_str.substr(15, 1) == "-"){
+        csr_f.open("test_matrices/csr/" + file_str.substr(14, 1) + "_csr.csv");
+    }
+    else {
+        csr_f.open("test_matrices/csr/" + file_str.substr(14, 2) + "_csr.csv");
+    }
+    
 
     csr_f << M << "\n";   // rows
     csr_f << N << "\n";   // columns
@@ -99,7 +103,6 @@ void transposed_csr_to_file(std::string file, int M, int N, int nz, int*& row_of
 
 void to_coo(float** dense_matrix, int M, int N, int nz, int*& row_indices, int*& column_indices, float*& values){
     int nz_idx = 0;
-    printf("%d, %d\n", M, N);
     
     for (int i=0; i<M; i++){
         for (int j=0; j<N; j++){
@@ -112,14 +115,17 @@ void to_coo(float** dense_matrix, int M, int N, int nz, int*& row_indices, int*&
             }
         }
     }
-    printf("%d\n", nz_idx);
-    printf("%d, %d\n", row_indices[nz-1], column_indices[nz-1]);
 }
 
 void coo_to_file(const char* file, int M, int N, int nz, int*& row_indices, int*& column_indices, float*& values){
     ofstream coo_f;
     string file_str = (string) file;
-    coo_f.open("test_matrices/coo/" + file_str.substr(14, 1) + "_coo.csv");
+    if (file_str.substr(15, 1) == "-"){
+        coo_f.open("test_matrices/coo/" + file_str.substr(14, 1) + "_coo.csv");
+    }
+    else {
+        coo_f.open("test_matrices/coo/" + file_str.substr(14, 2) + "_coo.csv");
+    }
 
     coo_f << M << "\n";   // rows
     coo_f << N << "\n";   // columns
@@ -240,9 +246,6 @@ void convert_mtx_to_file(const char* file){
     float* values_coo = (float*) malloc(nnz * sizeof(float));
 
     to_coo(dense_matrix, M, N, nnz, row_indices_coo, column_indices_coo, values_coo);
-
-    printf("%d\n", nnz);
-    printf("%d, %d\n", row_indices_coo[nnz-1], column_indices_coo[nnz-1]);
 
     // save COO to file
     coo_to_file(file, M, N, nnz, row_indices_coo, column_indices_coo, values_coo);

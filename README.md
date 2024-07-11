@@ -128,26 +128,70 @@ git clone https://github.com/Martina-Scheffler/GPU-Computing.git
 cd GPU-Computing/FinalProject/
 ```
 
+### Import Test Matrices (optional)
+In order to load the test matrices in the programs, they were first converted from `.mtx` files to `.csv` files. 
+During the process, also some wrong entries (value zero saved as non-zero) were removed and the number of non-zero elements adjusted.
+
+This was done by commenting in the `main()` function in [`FinalProject/include/import_sparse_matrix.cpp`](FinalProject/include/import_sparse_matrix.cpp) and then executing:
+```batch
+g++ -o include/import include/import_sparse_matrix.cpp include/mmio.c 
+```
+followed by
+```batch
+./include/import 
+```
+The matrices are saved in the [`coo/`](FinalProject/test_matrices/coo/) and [`csr/`](FinalProject/test_matrices/csr/) folders with the structure:
+1. rows
+2. columns
+3. number of non-zero elements
+4. row offsets (CSR) or row indices (COO)
+5. column indices
+6. values of the non-zero elements
+
+
 ### Run
 ```batch
 sbatch transpose_sparse_sbatch.sh
 ```
-will run the command `srun ./bin/transpose <startegy> <matrix>`, where the options for `<strategy> are:
+will run the command `srun ./bin/transpose <algorithm> <matrix>`, where the options for `<algorithm>` are:
 
-1. cuSPARSE CSR transpose by CSR-CSC conversion
+- `0`: cuSPARSE CSR transpose by CSR-CSC conversion
+- `1`: own kernel for CSR-CSC conversion
+- `2`: own kernel for transposing a COO matrix
+- `3`: own kernel for transposition by CSR-COO-T-CSR
 
 and the `<matrix>` parameter is either an integer from `1` to `10` specifying a desired test matrix, or `all` to evaluate all of them in a loop. The matrices that can be used for testing and a description of them can be found in [`FinalProject/test_matrices/`](FinalProject/test_matrices/). 
 
-### Evaluate
-After running, resulting transposed matrices are created in `test_matrices/tranposed/` and files for performance evaluation in `output/`. To copy to a machine with Python to evaluate:
+After running, resulting transposed matrices are created in `test_matrices/tranposed/` and files for performance evaluation in `output/`.
+
+### Test Correctness
+Correctness of the tranposition algorithms can be tested using the Jupyter notebooks in [FinalProject/evaluation/tests/](FinalProject/evaluation/tests/).
+
+For this, the desired matrices need to be copied to a computer where a Jupyter notebook can be run:
 ```bash
 scp name.surname@marzola.disi.unitn.it:~/GPU-Computing/FinalProject/test_matrices/transposed/* .
 ```
+and then the notebooks can be used to transpose the original matrix using `scipy.sparse` and checking for equality with the one obtained on the cluster.
+
+- [test_coo_transpose](FinalProject/evaluation/tests/test_coo_transpose.ipynb) can be used to test correctness of algorithm `2` for COO transposition
+- [test_csr_coo_convert](FinalProject/evaluation/tests/test_csr_coo_convert.ipynb) can be used to test conversion from CSR to COO format
+- [test_csr_coo_csr_convert](FinalProject/evaluation/tests/test_csr_coo_csr_convert.ipynb) can be used to check a CSR matrix against itself after a CSR-COO-CSR conversion
+- [test_csr_transpose](FinalProject/evaluation/tests/test_csr_transpose.ipynb) can be used to test correctness of CSR transposition, i.e. algorithms `0`, `1` and `3`
+
+The correct output for all tests at the bottom should be `True`.
+
+
+### Run All (CSR)
+In order to run all transpose variants shown in the paper for the CSR matrices, run:
+```bash
+sbatch transpose_all_sbatch.sh
+```
+
+### Evaluate
+To copy the `output/` to a machine with Python to evaluate:
 ```bash
 scp name.surname@marzola.disi.unitn.it:~/GPU-Computing/FinalProject/output/* .
 ```
-Correctness of the transposition can be checked using `scipy.sparse` by adjusting the paths at the top of `evaluation/test_csr_transpose.ipynb` and running it. The correct output at the bottom should be `True`.
-
-The effective bandwidth...
+TODO
 
 

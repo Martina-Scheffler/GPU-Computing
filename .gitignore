@@ -2,4 +2,5 @@
 *output/
 *.png
 FinalProject/test_matrices/transposed/*.csv
+FinalProject/include/import
 .vscode/*

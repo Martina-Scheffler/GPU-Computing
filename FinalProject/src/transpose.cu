@@ -465,7 +465,7 @@ void transpose_own_via_COO(string file, string timing_file){
     float milliseconds = 0.0;
 
     float min_time = INFINITY;
-    int min_blocks;
+    // int min_blocks;
     int min_threads;
 
     // create blocks and threads
@@ -576,7 +576,7 @@ void transpose_own_via_COO(string file, string timing_file){
     min_time = INFINITY;
 
     // invoke COO-CSR kernel NUM_REPS times and find best number of threads
-    for (int i=2; i<=1024; i*=2){
+    for (int i=512; i<=1024; i*=2){
         // start CUDA timer 
         cudaEventRecord(start, 0);
 

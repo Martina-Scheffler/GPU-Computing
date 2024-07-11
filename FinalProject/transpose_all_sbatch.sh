@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=transpose_sparse_all
 #SBATCH --output=tps_all_%j.out
-#SBATCH --error=tps_%j.err
+#SBATCH --error=tps_all_%j.err
 #SBATCH --partition=edu5
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:1

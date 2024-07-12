@@ -193,6 +193,10 @@ To copy the `output/` to a machine with Python to evaluate:
 ```bash
 scp name.surname@marzola.disi.unitn.it:~/GPU-Computing/FinalProject/output/* .
 ```
-TODO
+Afterwards, run
+```bash
+python3 evaluation/visualize.py
+```
+from the `FinalProject/` folder. This generates plots for the execution times and effective bandwidths. Further, it prints the max. effective bandwidth reached on the data set and its percentage of the maximum bandwidth of the GPU.
 
 

@@ -69,7 +69,7 @@ In order to run all transpose variants shown in the paper for the CSR matrices, 
 ```bash
 sbatch transpose_all_sbatch.sh
 ```
-Note: This takes some time, especially using `NUM_REPS = 100`, since the algorithms `2` and `3` test a few different combinations for number of blocks and threads.
+This will run algorithms `0`, `1` and `3` for `all` matrices.
 
 ### Evaluate
 To copy the `output/` to a machine with Python to evaluate:
